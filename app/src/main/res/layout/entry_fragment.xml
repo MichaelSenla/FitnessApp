@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".ui.entry.EntryFragment">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etEmail"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="textWebEmailAddress"
+        android:hint="@string/fragment_entry_email_hint"/>
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etName"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="textWebEmailAddress"
+        android:hint="@string/fragment_entry_name_hint"/>
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etLastname"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="textWebEmailAddress"
+        android:hint="@string/fragment_entry_lastname_hint"/>
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etPassword"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="textPassword"
+        android:hint="@string/fragment_entry_password_hint"/>
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etRepeatPassword"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="textPassword"
+        android:hint="@string/fragment_entry_repeat_password_hint"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btSigningUp"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/grey_bon_jour"
+        android:textColor="@color/brown_puce"
+        android:textAllCaps="false"
+        android:text="@string/fragment_entry_signing_up_label"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btLogIn"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/grey_bon_jour"
+        android:textColor="@color/brown_puce"
+        android:textAllCaps="false"
+        android:text="@string/fragment_entry_log_in_label"/>
+
+    <TextView
+        android:id="@+id/tvLogIn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/celestial_blue"/>
+
+    <TextView
+        android:id="@+id/tvSigningUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/celestial_blue"/>
+</LinearLayout>

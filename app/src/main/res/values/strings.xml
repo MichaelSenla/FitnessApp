@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">FitnessApp</string>
+
+    <string name="fragment_splash_your_health_label">Your Health</string>
+
+    <string name="fragment_entry_signing_up_label">Зарегистрироваться</string>
+    <string name="fragment_entry_log_in_label">Войти</string>
+    <string name="fragment_entry_email_hint">Email</string>
+    <string name="fragment_entry_name_hint">Имя</string>
+    <string name="fragment_entry_lastname_hint">Фамилия</string>
+    <string name="fragment_entry_password_hint">Пароль</string>
+    <string name="fragment_entry_repeat_password_hint">Повторить пароль</string>
+</resources>
