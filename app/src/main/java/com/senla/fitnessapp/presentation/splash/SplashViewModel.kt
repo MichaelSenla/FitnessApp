@@ -1,10 +1,9 @@
-package com.senla.fitnessapp.ui.splash
+package com.senla.fitnessapp.presentation.splash
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator.INFINITE
 import android.view.View
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 
 class SplashViewModel() : ViewModel() {
 

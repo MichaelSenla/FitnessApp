@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".ui.entry.EntryFragment">
+    tools:context=".presentation.entry.EntryFragment">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/etEmail"
@@ -66,13 +66,7 @@
         android:text="@string/fragment_entry_log_in_label"/>
 
     <TextView
-        android:id="@+id/tvLogIn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/celestial_blue"/>
-
-    <TextView
-        android:id="@+id/tvSigningUp"
+        android:id="@+id/tvAuthenticationState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/celestial_blue"/>

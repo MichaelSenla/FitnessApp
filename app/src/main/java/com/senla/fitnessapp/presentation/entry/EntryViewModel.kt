@@ -1,4 +1,4 @@
-package com.senla.fitnessapp.ui.entry
+package com.senla.fitnessapp.presentation.entry
 
 import android.text.Spannable
 import android.text.SpannableString
@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.Repository
 import com.senla.fitnessapp.data.network.models.LogInResponse
+import com.senla.fitnessapp.data.network.models.RegisterRequest
 import com.senla.fitnessapp.data.network.models.RegisterResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -28,16 +29,11 @@ class EntryViewModel @Inject constructor(
         return spannableString
     }
 
-    fun registerUser(
-        email: String, firstName: String,
-        lastName: String, password: String
-    ): LiveData<RegisterResponse> =
-        repository.registerUser(email, firstName, lastName, password)
+    fun registerUser(query: String, registerRequest: RegisterRequest): LiveData<RegisterResponse> =
+        repository.registerUser(query, registerRequest)
 
-
-    fun userLogIn(email: String, password: String): LiveData<LogInResponse> =
-        repository.userLogIn(email, password)
-
+    fun userLogIn(query: String, email: String, password: String): LiveData<LogInResponse> =
+        repository.userLogIn(query, email, password)
 
     override fun onCleared() {
         compositeDisposable.dispose()

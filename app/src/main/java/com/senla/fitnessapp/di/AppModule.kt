@@ -34,10 +34,6 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideRepository() = Repository()
-
-    @Singleton
-    @Provides
     fun provideCompositeDisposable() = CompositeDisposable()
 
     @Singleton

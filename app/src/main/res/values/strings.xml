@@ -10,4 +10,11 @@
     <string name="fragment_entry_lastname_hint">Фамилия</string>
     <string name="fragment_entry_password_hint">Пароль</string>
     <string name="fragment_entry_repeat_password_hint">Повторить пароль</string>
+
+    <string name="fragment_main_open_navigation_label">Открыть</string>
+    <string name="fragment_main_close_navigation_label">Закрыть</string>
+
+    <string name="navigation_drawer_menu_item_main">Главный экран</string>
+    <string name="navigation_drawer_menu_item_notification">Напоминания</string>
+    <string name="navigation_drawer_menu_item_exit">Выход</string>
 </resources>

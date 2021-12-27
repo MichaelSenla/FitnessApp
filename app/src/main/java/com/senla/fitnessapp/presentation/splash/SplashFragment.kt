@@ -1,4 +1,4 @@
-package com.senla.fitnessapp.ui.splash
+package com.senla.fitnessapp.presentation.splash
 
 import android.os.Bundle
 import android.os.Handler
@@ -9,14 +9,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.senla.fitnessapp.R
-import com.senla.fitnessapp.databinding.SplashFragmentBinding
-import com.senla.fitnessapp.ui.entry.EntryFragment
+import com.senla.fitnessapp.databinding.FragmentSplashBinding
+import com.senla.fitnessapp.presentation.entry.EntryFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SplashFragment : Fragment() {
 
-    private var _binding: SplashFragmentBinding? = null
+    private var _binding: FragmentSplashBinding? = null
     private val binding get() = _binding!!
     private val splashViewModel: SplashViewModel by viewModels()
 
@@ -25,7 +25,7 @@ class SplashFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = SplashFragmentBinding.inflate(inflater,container,false)
+        _binding = FragmentSplashBinding.inflate(inflater,container,false)
 
         return binding.root
     }
@@ -40,5 +40,11 @@ class SplashFragment : Fragment() {
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, EntryFragment()).commit()
         }, 3000)
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+
+        super.onDestroyView()
     }
 }

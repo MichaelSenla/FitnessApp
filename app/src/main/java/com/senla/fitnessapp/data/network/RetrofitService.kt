@@ -1,25 +1,22 @@
 package com.senla.fitnessapp.data.network
 
 import com.senla.fitnessapp.data.network.models.LogInResponse
+import com.senla.fitnessapp.data.network.models.RegisterRequest
 import com.senla.fitnessapp.data.network.models.RegisterResponse
-import io.reactivex.rxjava3.core.Observable
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.POST
+import io.reactivex.rxjava3.core.Single
+import retrofit2.http.*
 
 interface RetrofitService {
 
-    @FormUrlEncoded
-    @POST("lesson-26.php?method=login")
+    @POST("lesson-26.php")
     fun userLogIn(
+        @Query("method") query: String,
         @Field("email") email: String,
-        @Field("password") password: String): Observable<LogInResponse>
+        @Field("password") password: String
+    ): Single<LogInResponse>
 
-    @FormUrlEncoded
-    @POST("lesson-26.php?method=register")
+    @POST("lesson-26.php")
     fun registerUser(
-        @Field("email") email: String,
-        @Field("firstName") firstName: String,
-        @Field("lastName") lastName: String,
-        @Field("password") password: String): Observable<RegisterResponse>
+        @Query("method") query: String,
+        @Body request: RegisterRequest): Single<RegisterResponse>
 }
