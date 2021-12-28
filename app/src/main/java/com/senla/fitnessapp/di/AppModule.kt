@@ -2,9 +2,9 @@ package com.senla.fitnessapp.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.senla.fitnessapp.Constants.BASE_URL
-import com.senla.fitnessapp.Constants.SHARED_PREFERENCES
-import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.common.Constants.BASE_URL
+import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES
+import com.senla.fitnessapp.data.database.SQLiteHelper
 import com.senla.fitnessapp.data.network.RetrofitService
 import dagger.Module
 import dagger.Provides
@@ -40,4 +40,8 @@ object AppModule {
     @Provides
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences =
         context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE)
+
+    @Singleton
+    @Provides
+    fun provideSQLite(@ApplicationContext context: Context) = SQLiteHelper(context)
 }

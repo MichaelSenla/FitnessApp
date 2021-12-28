@@ -12,8 +12,10 @@ import com.senla.fitnessapp.databinding.FragmentTrackBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.main.MainFragment
 import com.senla.fitnessapp.presentation.notification.NotificationFragment
+import dagger.hilt.android.AndroidEntryPoint
 
-class TrackFragment : Fragment() {
+@AndroidEntryPoint
+class TrackFragment: Fragment() {
 
     private var _binding: FragmentTrackBinding? = null
     private val binding get() = _binding!!

@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class EntryFragment : Fragment(R.layout.fragment_entry) {
+class EntryFragment: Fragment(R.layout.fragment_entry) {
 
     companion object {
         private const val SPANNABLE_LOG_IN_TEXT = "Войти"

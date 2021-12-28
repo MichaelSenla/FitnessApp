@@ -3,6 +3,8 @@ package com.senla.fitnessapp.data
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.senla.fitnessapp.common.models.Notification
+import com.senla.fitnessapp.data.database.SQLiteHelper
 import com.senla.fitnessapp.data.network.RetrofitService
 import com.senla.fitnessapp.data.network.models.LogInResponse
 import com.senla.fitnessapp.data.network.models.RegisterRequest
@@ -12,8 +14,13 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import javax.inject.Inject
 
-class Repository @Inject constructor(private val retrofitService: RetrofitService,
-                                     private val compositeDisposable: CompositeDisposable) {
+class Repository @Inject constructor(
+    private val retrofitService: RetrofitService,
+    private val compositeDisposable: CompositeDisposable
+) {
+
+    @Inject
+    lateinit var sqLiteHelper: SQLiteHelper
 
     private val _logInResponse = MutableLiveData<LogInResponse>()
     val logInResponse: LiveData<LogInResponse>
@@ -28,7 +35,8 @@ class Repository @Inject constructor(private val retrofitService: RetrofitServic
             retrofitService.userLogIn(query, email, password)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _logInResponse.value = it}, {}))
+                .subscribe({ _logInResponse.value = it }, {})
+        )
         Log.e("checking", "${_logInResponse.value}")
 
         return logInResponse
@@ -36,10 +44,26 @@ class Repository @Inject constructor(private val retrofitService: RetrofitServic
 
     fun registerUser(query: String, registerRequest: RegisterRequest): LiveData<RegisterResponse> {
         compositeDisposable.add(retrofitService.registerUser(query, registerRequest)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({_registerResponse.postValue(it)}, {}))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ _registerResponse.postValue(it) }, {}))
 
         return registerResponse
+    }
+
+    fun insertNotification(notification: Notification): Long {
+        return sqLiteHelper.insertNotification(notification)
+    }
+
+    fun getAllNotifications(): ArrayList<Notification> {
+        return sqLiteHelper.getAllNotifications()
+    }
+
+    fun getNotificationById(id: Int): Notification? {
+        return sqLiteHelper.getNotificationById(id)
+    }
+
+    fun deleteNotificationById(id: Int): Int {
+        return sqLiteHelper.deleteNotificationById(id)
     }
 }

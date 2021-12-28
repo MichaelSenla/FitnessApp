@@ -17,4 +17,11 @@
     <string name="navigation_drawer_menu_item_main">Главный экран</string>
     <string name="navigation_drawer_menu_item_notification">Напоминания</string>
     <string name="navigation_drawer_menu_item_exit">Выход</string>
+
+
+    <string name="fragment_notification_dialog_choose_day_label">Выбрать день</string>
+    <string name="fragment_notification_dialog_choose_time_label">Выбрать время</string>
+    <string name="fragment_notification_dialog_create_notification_label">Создать</string>
+    <string name="fragment_notification_dialog_notification_edittext_hint_label">
+        Пожалуйста, введите текст уведомления.</string>
 </resources>

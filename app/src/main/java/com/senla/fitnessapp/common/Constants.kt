@@ -1,4 +1,4 @@
-package com.senla.fitnessapp
+package com.senla.fitnessapp.common
 
 object Constants {
 

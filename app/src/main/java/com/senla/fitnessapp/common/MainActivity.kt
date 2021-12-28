@@ -1,13 +1,13 @@
-package com.senla.fitnessapp
+package com.senla.fitnessapp.common
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.senla.fitnessapp.R
 import com.senla.fitnessapp.presentation.main.MainFragment
-import com.senla.fitnessapp.presentation.splash.SplashFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

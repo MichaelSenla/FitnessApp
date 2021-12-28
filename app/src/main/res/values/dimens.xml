@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="small_padding">8dp</dimen>
+
     <dimen name="small_margin">8dp</dimen>
     <dimen name="medium_margin">16dp</dimen>
     <dimen name="big_margin">24dp</dimen>
 
+    <dimen name="little_text_size">14sp</dimen>
     <dimen name="small_text_size">16sp</dimen>
     <dimen name="big_text_size">34sp</dimen>
 </resources>

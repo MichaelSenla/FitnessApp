@@ -17,7 +17,7 @@ import javax.inject.Inject
 class EntryViewModel @Inject constructor(
     private val compositeDisposable: CompositeDisposable,
     private val repository: Repository
-) : ViewModel() {
+): ViewModel() {
 
     fun createUnderlineSpannable(text: String, startIndex: Int, endIndex: Int): SpannableString {
         val spannableString = SpannableString(text)

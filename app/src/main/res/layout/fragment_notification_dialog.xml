@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/notification_text_edittext_background"
+    tools:context=".presentation.notification.notificationDialog.NotificationDialogFragment">
+
+    <Button
+        android:id="@+id/btnChooseDay"
+        style="@style/NotificationDialogChoosingButton"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/small_margin"
+        android:backgroundTint="@color/red_tamarillo"
+        android:text="@string/fragment_notification_dialog_choose_day_label"
+        android:textSize="@dimen/little_text_size"
+        app:layout_constraintEnd_toStartOf="@id/btnChooseTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.45" />
+
+    <Button
+        android:id="@+id/btnChooseTime"
+        style="@style/NotificationDialogChoosingButton"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="@dimen/small_margin"
+        android:backgroundTint="@color/red_tamarillo"
+        android:text="@string/fragment_notification_dialog_choose_time_label"
+        android:textSize="@dimen/little_text_size"
+        app:layout_constraintBottom_toTopOf="@id/etNotificationText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@id/btnChooseDay"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.45" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etNotificationText"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginHorizontal="@dimen/medium_margin"
+        android:background="@drawable/notification_text_edittext_background"
+        android:gravity="start|top"
+        android:hint="@string/fragment_notification_dialog_notification_edittext_hint_label"
+        android:inputType="text"
+        android:padding="@dimen/small_padding"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnChooseDay"
+        app:layout_constraintVertical_bias="0" />
+
+    <Button
+        android:id="@+id/btnCreateNotification"
+        android:layout_width="160dp"
+        android:layout_height="50dp"
+        android:backgroundTint="@color/blue_torea_bay"
+        android:text="@string/fragment_notification_dialog_create_notification_label"
+        android:textAllCaps="false"
+        android:textSize="@dimen/small_text_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etNotificationText"
+        app:layout_constraintVertical_bias="0.01" />
+</androidx.constraintlayout.widget.ConstraintLayout>
