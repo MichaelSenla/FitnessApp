@@ -7,7 +7,6 @@ import com.senla.fitnessapp.common.models.Notification
 import com.senla.fitnessapp.data.database.SQLiteHelper
 import com.senla.fitnessapp.data.network.RetrofitService
 import com.senla.fitnessapp.data.network.models.LogInResponse
-import com.senla.fitnessapp.data.network.models.RegisterRequest
 import com.senla.fitnessapp.data.network.models.RegisterResponse
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -42,11 +41,14 @@ class Repository @Inject constructor(
         return logInResponse
     }
 
-    fun registerUser(query: String, registerRequest: RegisterRequest): LiveData<RegisterResponse> {
-        compositeDisposable.add(retrofitService.registerUser(query, registerRequest)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ _registerResponse.postValue(it) }, {}))
+    fun registerUser(query: String, registerRequest: HashMap<String, String>)
+            : LiveData<RegisterResponse> {
+        compositeDisposable.add(
+            retrofitService.registerUser(query, registerRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _registerResponse.postValue(it) }, {})
+        )
 
         return registerResponse
     }
@@ -65,5 +67,9 @@ class Repository @Inject constructor(
 
     fun deleteNotificationById(id: Int): Int {
         return sqLiteHelper.deleteNotificationById(id)
+    }
+
+    fun updateNotification(notification: Notification): Int {
+        return sqLiteHelper.updateNotification(notification)
     }
 }

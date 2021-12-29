@@ -106,7 +106,7 @@ class SQLiteHelper(context: Context):
         contentValues.put(TIME, notification.time)
 
         val success = database.update(TABLE_NOTIFICATION, contentValues,
-            "id-" + notification.id, null)
+            "id=" + notification.id, null)
 
         database.close()
 

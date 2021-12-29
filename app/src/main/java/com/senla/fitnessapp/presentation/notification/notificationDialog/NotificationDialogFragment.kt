@@ -19,11 +19,15 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class NotificationDialogFragment(private val notificationId: Int?): DialogFragment(), DatePickerDialog.OnDateSetListener,
+class NotificationDialogFragment(private val notificationId: Int?,
+                                 private val listener: RefreshRecyclerView):
+    DialogFragment(), DatePickerDialog.OnDateSetListener,
     TimePickerDialog.OnTimeSetListener {
 
     companion object {
         private const val EDITTEXT_IS_EMPTY_WARNING = "Пожалуйста, заполните даннные."
+        private const val CREATE_NOTIFICATION_LABEL = "Создать"
+        private const val SAVE_NOTIFICATION_LABEL = "Сохранить"
     }
 
     private var _binding: FragmentNotificationDialogBinding? = null
@@ -54,10 +58,11 @@ class NotificationDialogFragment(private val notificationId: Int?): DialogFragme
 
     private fun setTextToEditText() {
         if (notificationId != null) {
+            binding.btnCreateNotification.text = SAVE_NOTIFICATION_LABEL
             binding.etNotificationText
                 .setText(repository.getNotificationById(notificationId)?.title)
         } else {
-            return
+            binding.btnCreateNotification.text = CREATE_NOTIFICATION_LABEL
         }
     }
 
@@ -83,30 +88,52 @@ class NotificationDialogFragment(private val notificationId: Int?): DialogFragme
     private fun setCreateNotificationButtonListener() {
         with(binding) {
             btnCreateNotification.setOnClickListener {
-                if (etNotificationText.text.toString().isNotEmpty()) {
-
-                    val status = repository.insertNotification(
-                        Notification(
-                            title = etNotificationText.text.toString(),
-                            time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
-                                        "$savedHour:$savedMinute").toString())
-                    )
-
-                    if (status <= -1) {
-                        Log.e("SQLite", "Notification wasn't added")
+                if (notificationId == null) {
+                    if (etNotificationText.text.toString().isNotEmpty()) {
+                        createNotification()
                     } else {
-                        Log.e("SQLite", "Notification was added!")
+                        Toast.makeText(
+                            requireContext(), EDITTEXT_IS_EMPTY_WARNING,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-
-                    this@NotificationDialogFragment.dismiss()
                 } else {
-                    Toast.makeText(
-                        requireContext(), EDITTEXT_IS_EMPTY_WARNING,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    updateNotification()
                 }
+                listener.refreshRecyclerView()
             }
         }
+    }
+
+    private fun createNotification() {
+        val status = repository.insertNotification(
+            Notification(
+                title = binding.etNotificationText.text.toString(),
+                time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
+                        "$savedHour:$savedMinute").toString()))
+
+        if (status > -1) {
+            Log.e("SQLite", "Notification was added!")
+        } else {
+            Log.e("SQLite", "Notification wasn't added")
+        }
+
+        this.dismiss()
+    }
+
+    private fun updateNotification() {
+        val status = repository.updateNotification(Notification(id = notificationId!!,
+            title = binding.etNotificationText.text.toString(),
+            time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
+                    "$savedHour:$savedMinute").toString()))
+
+        if (status > -1) {
+            Log.e("SQLite", "Notification was updated!")
+        } else {
+            Log.e("SQLite", "Notification wasn't updated")
+        }
+
+        this.dismiss()
     }
 
     private fun setAllButtonsListeners() {
@@ -130,5 +157,9 @@ class NotificationDialogFragment(private val notificationId: Int?): DialogFragme
         _binding = null
 
         super.onDestroyView()
+    }
+
+    interface RefreshRecyclerView {
+        fun refreshRecyclerView()
     }
 }

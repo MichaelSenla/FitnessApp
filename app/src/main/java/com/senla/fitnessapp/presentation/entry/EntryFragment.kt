@@ -77,11 +77,11 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                             Toast.LENGTH_SHORT).show()
                     }
                 })
-                userRegisterResponse = entryViewModel.registerUser(REGISTER_TEXT, RegisterRequest(
-                        etEmail.text.toString(),
-                        etName.text.toString(),
-                        etLastname.text.toString(),
-                        etPassword.text.toString()))
+                userRegisterResponse = entryViewModel.registerUser(REGISTER_TEXT,
+                    hashMapOf("email" to etEmail.text.toString(), "name" to etName.text.toString(),
+                        "lastname" to etLastname.text.toString(),
+                        "password" to etPassword.text.toString())
+                )
             }
         }
     }

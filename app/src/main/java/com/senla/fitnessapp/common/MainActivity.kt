@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.presentation.main.MainFragment
+import com.senla.fitnessapp.presentation.splash.SplashFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -19,7 +20,7 @@ class MainActivity: AppCompatActivity() {
 
     private fun navigateToSplashFragment() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, MainFragment()).commit()
+            .replace(R.id.fragmentContainer, SplashFragment()).commit()
     }
 
     private fun setSupportActionBar() {

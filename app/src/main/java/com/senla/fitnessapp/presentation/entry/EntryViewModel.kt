@@ -29,7 +29,7 @@ class EntryViewModel @Inject constructor(
         return spannableString
     }
 
-    fun registerUser(query: String, registerRequest: RegisterRequest): LiveData<RegisterResponse> =
+    fun registerUser(query: String, registerRequest: HashMap<String, String>): LiveData<RegisterResponse> =
         repository.registerUser(query, registerRequest)
 
     fun userLogIn(query: String, email: String, password: String): LiveData<LogInResponse> =

@@ -20,7 +20,8 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class NotificationFragment: Fragment(),
-    NotificationAdapter.OnNotificationAdapterItemClickListener {
+    NotificationAdapter.OnNotificationAdapterItemClickListener,
+    NotificationDialogFragment.RefreshRecyclerView {
 
     companion object {
         const val NOTIFICATION_DIALOG_TAG = "notificationDialog"
@@ -72,7 +73,8 @@ class NotificationFragment: Fragment(),
 
     private fun setAddNotificationButton() {
         binding.fab.setOnClickListener {
-            NotificationDialogFragment(null).show(requireActivity().supportFragmentManager,
+            NotificationDialogFragment(null, this)
+                .show(requireActivity().supportFragmentManager,
                 NOTIFICATION_DIALOG_TAG)
         }
     }
@@ -95,12 +97,17 @@ class NotificationFragment: Fragment(),
         super.onDestroyView()
     }
 
-    override fun deleteItem() {
-
+    override fun deleteItem(id: Int) {
+        repository.deleteNotificationById(id)
+        adapter.submitList(repository.getAllNotifications())
     }
 
     override fun changeItem(position: Int, id: Int) {
-        NotificationDialogFragment(id).show(requireActivity().supportFragmentManager,
+        NotificationDialogFragment(id, this).show(requireActivity().supportFragmentManager,
             NOTIFICATION_DIALOG_TAG)
+    }
+
+    override fun refreshRecyclerView() {
+        adapter.submitList(repository.getAllNotifications())
     }
 }

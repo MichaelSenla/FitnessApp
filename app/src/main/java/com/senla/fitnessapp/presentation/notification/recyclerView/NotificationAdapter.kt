@@ -27,7 +27,7 @@ class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) 
                     }
                 }
                 ivDeleteIcon.setOnClickListener {
-                    listener.deleteItem()
+                    listener.deleteItem(getItem(adapterPosition).id)
                 }
             }
         }
@@ -56,7 +56,7 @@ class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) 
     }
 
     interface OnNotificationAdapterItemClickListener {
-        fun deleteItem()
+        fun deleteItem(id: Int)
         fun changeItem(position: Int, id: Int)
     }
 }

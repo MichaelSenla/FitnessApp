@@ -18,5 +18,5 @@ interface RetrofitService {
     @POST("lesson-26.php")
     fun registerUser(
         @Query("method") query: String,
-        @Body request: RegisterRequest): Single<RegisterResponse>
+        @Body request: HashMap<String, String>): Single<RegisterResponse>
 }
