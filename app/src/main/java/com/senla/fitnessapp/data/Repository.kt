@@ -6,7 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import com.senla.fitnessapp.common.models.Notification
 import com.senla.fitnessapp.data.database.SQLiteHelper
 import com.senla.fitnessapp.data.network.RetrofitService
+import com.senla.fitnessapp.data.network.models.LogInRequest
 import com.senla.fitnessapp.data.network.models.LogInResponse
+import com.senla.fitnessapp.data.network.models.RegisterRequest
 import com.senla.fitnessapp.data.network.models.RegisterResponse
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -29,27 +31,28 @@ class Repository @Inject constructor(
     val registerResponse: LiveData<RegisterResponse>
         get() = _registerResponse
 
-    fun userLogIn(query: String, email: String, password: String): LiveData<LogInResponse> {
+    fun userLogIn(query: String, logInRequest: LogInRequest): LiveData<LogInResponse> {
         compositeDisposable.add(
-            retrofitService.userLogIn(query, email, password)
+            retrofitService.userLogIn(query, logInRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _logInResponse.value = it }, {})
+                .subscribe({_logInResponse.value = it}, {})
         )
         Log.e("checking", "${_logInResponse.value}")
 
         return logInResponse
     }
 
-    fun registerUser(query: String, registerRequest: HashMap<String, String>)
-            : LiveData<RegisterResponse> {
+    fun registerUser(query: String, registerRequest: RegisterRequest): LiveData<RegisterResponse> {
         compositeDisposable.add(
             retrofitService.registerUser(query, registerRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _registerResponse.postValue(it) }, {})
+                .subscribe({_registerResponse.value = it}, {})
         )
 
+        Log.e("checking", "${_registerResponse.value?.status}")
+        Log.e("checking", "${registerResponse.value?.status}")
         return registerResponse
     }
 

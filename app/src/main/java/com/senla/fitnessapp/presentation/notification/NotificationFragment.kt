@@ -1,5 +1,6 @@
 package com.senla.fitnessapp.presentation.notification
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,8 @@ import com.senla.fitnessapp.data.Repository
 import com.senla.fitnessapp.databinding.FragmentNotificationBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.main.MainFragment
+import com.senla.fitnessapp.presentation.navigation.SideNavigation
+import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment
 import com.senla.fitnessapp.presentation.notification.recyclerView.NotificationAdapter
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,6 +37,8 @@ class NotificationFragment: Fragment(),
     lateinit var repository: Repository
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var adapter: NotificationAdapter
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,30 +50,10 @@ class NotificationFragment: Fragment(),
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setSideNavigationToggleButton()
-        setSideNavigationMenuButtons()
+        setNavigationMenuButtons(binding.navView, navigateToFragment, R.id.menuItemMain,
+            MainFragment(), sharedPreferences)
         setAddNotificationButton()
         initRecyclerView()
-    }
-
-    private fun setSideNavigationToggleButton() {
-        toggle = ActionBarDrawerToggle(
-            requireActivity(), binding.drawerLayout,
-            R.string.fragment_main_open_navigation_label,
-            R.string.fragment_main_close_navigation_label
-        )
-        binding.drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-    }
-
-    private fun setSideNavigationMenuButtons() {
-        binding.navView.setNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.menuItemMain -> navigateToFragment(MainFragment())
-                R.id.menuItemExit -> navigateToFragment(EntryFragment())
-            }
-            true
-        }
     }
 
     private fun setAddNotificationButton() {
@@ -79,7 +64,7 @@ class NotificationFragment: Fragment(),
         }
     }
 
-    private fun navigateToFragment(fragment: Fragment) {
+    private val navigateToFragment: (Fragment) -> Unit = { fragment ->
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment).commit()
     }

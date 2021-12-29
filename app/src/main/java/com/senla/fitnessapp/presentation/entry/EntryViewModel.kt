@@ -6,6 +6,7 @@ import android.text.style.UnderlineSpan
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.data.network.models.LogInRequest
 import com.senla.fitnessapp.data.network.models.LogInResponse
 import com.senla.fitnessapp.data.network.models.RegisterRequest
 import com.senla.fitnessapp.data.network.models.RegisterResponse
@@ -29,11 +30,11 @@ class EntryViewModel @Inject constructor(
         return spannableString
     }
 
-    fun registerUser(query: String, registerRequest: HashMap<String, String>): LiveData<RegisterResponse> =
+    fun registerUser(query: String, registerRequest: RegisterRequest): LiveData<RegisterResponse> =
         repository.registerUser(query, registerRequest)
 
-    fun userLogIn(query: String, email: String, password: String): LiveData<LogInResponse> =
-        repository.userLogIn(query, email, password)
+    fun userLogIn(query: String, logInRequest: LogInRequest): LiveData<LogInResponse> =
+        repository.userLogIn(query, logInRequest)
 
     override fun onCleared() {
         compositeDisposable.dispose()
