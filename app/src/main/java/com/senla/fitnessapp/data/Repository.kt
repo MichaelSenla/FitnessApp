@@ -36,7 +36,12 @@ class Repository @Inject constructor(
             retrofitService.userLogIn(query, logInRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({_logInResponse.value = it}, {})
+                .subscribe({ response ->
+                    val responseValue = response
+                    _logInResponse.value = responseValue
+                           }, {
+                    Log.e("checking", "${it.message}")
+                })
         )
         Log.e("checking", "${_logInResponse.value}")
 

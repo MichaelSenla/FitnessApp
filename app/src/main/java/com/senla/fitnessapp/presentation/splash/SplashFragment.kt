@@ -14,7 +14,7 @@ import com.senla.fitnessapp.presentation.entry.EntryFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SplashFragment : Fragment() {
+class SplashFragment: Fragment() {
 
     private var _binding: FragmentSplashBinding? = null
     private val binding get() = _binding!!
