@@ -10,13 +10,17 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
 import com.senla.fitnessapp.data.network.models.LogInRequest
+import com.senla.fitnessapp.data.network.models.LogInResponse
 import com.senla.fitnessapp.data.network.models.RegisterRequest
+import com.senla.fitnessapp.data.network.models.RegisterResponse
 import com.senla.fitnessapp.databinding.FragmentEntryBinding
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -43,7 +47,8 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private val binding get() = _binding!!
     private val entryViewModel: EntryViewModel by viewModels()
     private var logInFlag: Boolean = true
-
+    private lateinit var logInResponseObserver: Observer<LogInResponse>
+    private lateinit var registrationResponseObserver: Observer<RegisterResponse>
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
@@ -64,61 +69,62 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
             configureLayout()
         }
         setAllListeners()
+        setObservers()
     }
 
-    private fun setListenerForRegistrationButton() {
-        binding.apply {
-            btnSigningUp.setOnClickListener {
-                val registerResponse = entryViewModel.registerUser(REGISTER_QUERY_TEXT,
-                    RegisterRequest(etEmail.text.toString(), etName.text.toString(),
-                        etLastname.text.toString(), etPassword.text.toString())).value
-                Log.e("Testing", "${registerResponse?.status}")
-                if (registerResponse?.status == SERVER_SUCCESS_RESPONSE) {
-                    sharedPreferences.edit().putString(SHARED_PREFERENCES_TOKEN_KEY,
-                        registerResponse.token).apply()
+    private fun setObservers() {
+        setLogInObserver()
+        setRegistrationObserver()
+    }
 
-                    navigateToFragment(MainFragment())
-                } else if (registerResponse?.status == SERVER_ERROR_RESPONSE) {
-                    Toast.makeText(requireContext(), REGISTER_ERROR_TEXT, Toast.LENGTH_SHORT).show()
-                }
+    private fun setLogInObserver() {
+        logInResponseObserver = Observer {
+            if (it?.status == SERVER_SUCCESS_RESPONSE) {
+                Log.e("Testing", it.status)
+                sharedPreferences.edit().putString(SHARED_PREFERENCES_TOKEN_KEY,
+                    it.token).apply()
+
+                navigateToFragment(MainFragment())
+            } else if (it?.status == SERVER_ERROR_RESPONSE){
+                Toast.makeText(requireContext(), LOG_IN_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun setListenerForEntryButton() {
-        binding.apply {
-            btnLogIn.setOnClickListener {
-                val logInResponse = entryViewModel.userLogIn(LOG_IN_QUERY_TEXT,
-                    LogInRequest(etEmail.text.toString(), etPassword.text.toString())).value
-                Log.e("Testing", "${logInResponse?.status}")
-                if (logInResponse?.status == SERVER_SUCCESS_RESPONSE) {
-                    sharedPreferences.edit().putString(SHARED_PREFERENCES_TOKEN_KEY,
-                        logInResponse.token).apply()
+    private fun setRegistrationObserver() {
+        registrationResponseObserver = Observer {
+            if (it.status == SERVER_SUCCESS_RESPONSE) {
+                sharedPreferences.edit().putString(SHARED_PREFERENCES_TOKEN_KEY,
+                    it.token).apply()
 
-                    navigateToFragment(MainFragment())
-                } else {
-
-                    Toast.makeText(requireContext(), LOG_IN_ERROR_TEXT, Toast.LENGTH_SHORT).show()
-                }
+                navigateToFragment(MainFragment())
+            } else if (it.status == SERVER_ERROR_RESPONSE) {
+                Toast.makeText(requireContext(), REGISTER_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
     private fun navigateToFragment(fragment: Fragment) {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment).commit()
     }
 
-    private fun setAuthenticationStateListener() {
-        binding.tvAuthenticationState.setOnClickListener {
-            configureLayout()
-        }
-    }
-
     private fun setAllListeners() {
-        setListenerForRegistrationButton()
-        setListenerForEntryButton()
-        setAuthenticationStateListener()
+        binding.apply {
+            btnSigningUp.setOnClickListener {
+                entryViewModel.registerUser(REGISTER_QUERY_TEXT,
+                    RegisterRequest(etEmail.text.toString(), etName.text.toString(),
+                        etLastname.text.toString(), etPassword.text.toString()))
+            }
+            btnLogIn.setOnClickListener {
+                entryViewModel.userLogIn(LOG_IN_QUERY_TEXT,
+                    LogInRequest(etEmail.text.toString(), etPassword.text.toString()))
+            }
+            tvAuthenticationState.setOnClickListener {
+                configureLayout()
+            }
+        }
     }
 
     private fun configureLayout() {
@@ -151,6 +157,20 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 logInFlag = true
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        entryViewModel.logInResponse.observe(this, logInResponseObserver)
+        entryViewModel.registerResponse.observe(this, registrationResponseObserver)
+    }
+
+    override fun onStop() {
+        entryViewModel.logInResponse.removeObserver(logInResponseObserver)
+        entryViewModel.registerResponse.removeObserver(registrationResponseObserver)
+
+        super.onStop()
     }
 
     override fun onDestroyView() {

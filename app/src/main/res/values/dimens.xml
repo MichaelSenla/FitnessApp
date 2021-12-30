@@ -8,5 +8,7 @@
 
     <dimen name="little_text_size">14sp</dimen>
     <dimen name="small_text_size">16sp</dimen>
+    <dimen name="medium_text_size">22sp</dimen>
     <dimen name="big_text_size">34sp</dimen>
+    <dimen name="large_text_size">60sp</dimen>
 </resources>
