@@ -1,5 +1,6 @@
 package com.senla.fitnessapp.presentation.notification.recyclerView
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -27,7 +28,9 @@ class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) 
                     }
                 }
                 ivDeleteIcon.setOnClickListener {
-                    listener.deleteItem(getItem(adapterPosition).id)
+                    Log.e("ADAPTER", adapterPosition.toString())
+                    Log.e("LISTSIZE", itemCount.toString())
+                    listener.deleteItem(getItem(adapterPosition))
                 }
             }
         }
@@ -56,7 +59,7 @@ class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) 
     }
 
     interface OnNotificationAdapterItemClickListener {
-        fun deleteItem(id: Int)
+        fun deleteItem(notification: Notification)
         fun changeItem(position: Int, id: Int)
     }
 }

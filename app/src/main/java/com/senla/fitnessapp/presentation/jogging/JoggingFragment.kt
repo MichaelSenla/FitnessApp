@@ -21,6 +21,10 @@ import com.senla.fitnessapp.presentation.jogging.service.TimerService
 
 class JoggingFragment : Fragment() {
 
+    companion object {
+        private const val DELAY = 600L
+    }
+
     private var _binding: FragmentJoggingBinding? = null
     private val binding get() = _binding!!
     private val viewModel: JoggingViewModel by viewModels()
@@ -57,14 +61,14 @@ class JoggingFragment : Fragment() {
             with(binding) {
                 with(flipAnimator) {
                     setTarget(btnStart)
-                    flipAnimator.start()
+                    start()
                 }
                 Handler(Looper.getMainLooper()).postDelayed({
                     btnStart.isVisible = false
                     btnFinish.isVisible = true
                     tvTime.isVisible = true
                     startTimer()
-                }, 600)
+                }, DELAY)
             }
         }
     }
@@ -73,7 +77,6 @@ class JoggingFragment : Fragment() {
         binding.btnFinish.setOnClickListener {
             stopTimer()
             with(binding) {
-                btnStart.isVisible = true
                 tvTime.isVisible = true
                 btnFinish.isVisible = false
             }

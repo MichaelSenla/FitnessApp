@@ -6,7 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.senla.fitnessapp.common.models.Notification
-import java.lang.Exception
+import io.reactivex.rxjava3.core.Single
 
 class SQLiteHelper(context: Context):
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -30,7 +30,7 @@ class SQLiteHelper(context: Context):
         onCreate(db)
     }
 
-    fun insertNotification(notification: Notification): Long {
+    fun insertNotification(notification: Notification): Single<Long> {
         val database = this.writableDatabase
 
         val contentValues = ContentValues()
@@ -41,10 +41,10 @@ class SQLiteHelper(context: Context):
         val success = database.insert(TABLE_NOTIFICATION, null, contentValues)
         database.close()
 
-        return success
+        return Single.just(success)
     }
 
-    fun getAllNotifications(): ArrayList<Notification> {
+    fun getAllNotifications(): Single<ArrayList<Notification>> {
         val notificationList: ArrayList<Notification> = ArrayList()
         val selectQuery = "SELECT * FROM $TABLE_NOTIFICATION "
         val database = this.readableDatabase
@@ -57,7 +57,7 @@ class SQLiteHelper(context: Context):
             database.execSQL(selectQuery)
             e.printStackTrace()
 
-            return ArrayList()
+            return Single.just(notificationList)
         }
 
         var id: Int
@@ -77,10 +77,10 @@ class SQLiteHelper(context: Context):
 
         cursor.close()
 
-        return notificationList
+        return Single.just(notificationList)
     }
 
-    fun getNotificationById(id: Int): Notification? {
+    fun getNotificationById(id: Int): Single<Notification>? {
         val database = this.readableDatabase
         val selectQuery = "SELECT * FROM $TABLE_NOTIFICATION WHERE id = $id"
 
@@ -91,13 +91,13 @@ class SQLiteHelper(context: Context):
                 notification.title = it.getString(it.getColumnIndex(TITLE))
                 notification.time = it.getString(it.getColumnIndex(TIME))
 
-                return notification
+                return Single.just(notification)
             }
         }
         return null
     }
 
-    fun updateNotification(notification: Notification): Int {
+    fun updateNotification(notification: Notification): Single<Int> {
         val database = this.writableDatabase
 
         val contentValues = ContentValues()
@@ -110,10 +110,10 @@ class SQLiteHelper(context: Context):
 
         database.close()
 
-        return success
+        return Single.just(success)
     }
 
-    fun deleteNotificationById(id: Int): Int {
+    fun deleteNotificationById(id: Int): Single<Int> {
         val database = this.writableDatabase
 
         val contentValues = ContentValues()
@@ -123,6 +123,6 @@ class SQLiteHelper(context: Context):
 
         database.close()
 
-        return success
+        return Single.just(success)
     }
 }
