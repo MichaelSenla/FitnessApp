@@ -88,6 +88,7 @@ class NotificationFragment : Fragment(),
 
     override fun refreshRecyclerView() {
         viewModel.getAllNotifications()
+        Log.e("CHECKING","I'm here!")
     }
 
     override fun onDestroyView() {

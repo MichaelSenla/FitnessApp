@@ -58,6 +58,10 @@ class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) 
         holder.bind(getItem(position))
     }
 
+    override fun submitList(list: MutableList<Notification>?) {
+        super.submitList(list?.let { ArrayList(it) })
+    }
+
     interface OnNotificationAdapterItemClickListener {
         fun deleteItem(notification: Notification)
         fun changeItem(position: Int, id: Int)

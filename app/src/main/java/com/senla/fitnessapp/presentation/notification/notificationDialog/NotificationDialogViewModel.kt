@@ -38,7 +38,7 @@ class NotificationDialogViewModel @Inject constructor(
             repository.insertNotification(
                 Notification(title = titleBinding.etNotificationText.text.toString(),
                     time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
-                                "$savedHour:$savedMinute").toString()))
+                            "$savedHour:$savedMinute").toString()))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ if (it <= -1) Log.e("SQLite", "Notification wasn't added") },
@@ -47,10 +47,12 @@ class NotificationDialogViewModel @Inject constructor(
 
     fun updateNotification(notificationId: Int?, binding: FragmentNotificationDialogBinding) {
         compositeDisposable.add(
-            repository.updateNotification(Notification(id = notificationId!!,
+            repository.updateNotification(
+                Notification(id = notificationId!!,
                 title = binding.etNotificationText.text.toString(),
                 time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
-                        "$savedHour:$savedMinute").toString()))
+                        "$savedHour:$savedMinute").toString())
+            )
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({if (it <= -1)
@@ -59,7 +61,7 @@ class NotificationDialogViewModel @Inject constructor(
 
     fun getNotificationById(id: Int) {
         compositeDisposable.add(repository.getNotificationById(id)
-            !!.subscribeOn(Schedulers.io())
+        !!.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({_notification.value = it}, {}))
     }

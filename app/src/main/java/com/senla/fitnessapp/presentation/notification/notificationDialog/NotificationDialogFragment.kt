@@ -3,7 +3,6 @@ package com.senla.fitnessapp.presentation.notification.notificationDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -63,9 +62,9 @@ class NotificationDialogFragment(private val notificationId: Int?,
 
     private fun setGetNotificationObserver() {
         getNotificationObserver = Observer {
-                binding.btnCreateNotification.text = SAVE_NOTIFICATION_LABEL
-                binding.etNotificationText
-                    .setText(it.title)
+            binding.btnCreateNotification.text = SAVE_NOTIFICATION_LABEL
+            binding.etNotificationText
+                .setText(it.title)
         }
     }
 

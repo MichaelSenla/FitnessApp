@@ -8,7 +8,7 @@ class JoggingViewModel : ViewModel() {
     fun getTimeStringFromDouble(time: Double): String {
         val resultInt = time.roundToInt()
 
-        val minutes = resultInt % 86400 % 3600 / 60 / 10
+        val minutes = resultInt % 86400 % 36000 / 600 //100 = 10
         val seconds = resultInt % 86400 % 3600 % 600 / 10
         val milliseconds = resultInt % 86400 % 3600 % 60 % 10
 

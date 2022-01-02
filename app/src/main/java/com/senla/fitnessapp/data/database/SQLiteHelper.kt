@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.senla.fitnessapp.common.models.Notification
 import io.reactivex.rxjava3.core.Single
+import java.lang.Exception
 
 class SQLiteHelper(context: Context):
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {

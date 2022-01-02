@@ -1,25 +1,33 @@
 package com.senla.fitnessapp.presentation.jogging
 
+import android.Manifest
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.databinding.FragmentJoggingBinding
 import com.senla.fitnessapp.presentation.jogging.service.TimerService
+import com.senla.fitnessapp.presentation.location.Location
 
-class JoggingFragment : Fragment() {
+class JoggingFragment : Fragment(), Location {
 
     companion object {
         private const val DELAY = 600L
@@ -32,6 +40,31 @@ class JoggingFragment : Fragment() {
     private lateinit var serviceIntent: Intent
     private var time = 0.0
     private lateinit var flipAnimator: AnimatorSet
+    private lateinit var locationManager: LocationManager
+    private lateinit var location: Location
+//    private val requestPermissions = registerForActivityResult(ActivityResultContracts
+//        .RequestMultiplePermissions()) { permissions ->
+//        permissions.forEach { actionMap ->
+//            when (actionMap.key) {
+//                Manifest.permission.ACCESS_COARSE_LOCATION -> {
+//                    if (actionMap.value) {
+//                        Log.i("DEBUG", "Coarse location permission is granted")
+//                    } else {
+//                        !ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
+//                            Manifest.permission.ACCESS_COARSE_LOCATION)
+//                    }
+//                }
+//                Manifest.permission.ACCESS_FINE_LOCATION -> {
+//                    if (actionMap.value) {
+//                        Log.i("DEBUG", "Fine location permission is granted")
+//                    } else {
+//                        !ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
+//                            Manifest.permission.ACCESS_FINE_LOCATION)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,6 +136,20 @@ class JoggingFragment : Fragment() {
         timerStarted = false
     }
 
+    private fun initLocation() {
+        locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE)
+                as LocationManager
+    }
+
+    private fun checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat
+                .checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED && ActivityCompat
+                .checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+
+    }}
+
     private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             time = intent.getDoubleExtra(TimerService.TIME_EXTRA, 0.0)
@@ -114,5 +161,9 @@ class JoggingFragment : Fragment() {
         _binding = null
 
         super.onDestroyView()
+    }
+
+    override fun onLocationChanged(location: Location) {
+
     }
 }

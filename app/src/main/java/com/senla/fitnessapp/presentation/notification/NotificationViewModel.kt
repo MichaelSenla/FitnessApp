@@ -36,19 +36,6 @@ class NotificationViewModel @Inject constructor(
                 .subscribe({ _notificationList.value = it }, {}))
     }
 
-//
-//    fun deleteNotificationById(id: Int) {
-//        compositeDisposable.add(
-//            repository.deleteNotificationById(id)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe({
-//                    _notificationList.value?.remove()
-//                    if (it > -1) Log.e(LOG_TAG, LOG_DELETED_SUCCESSFULLY)
-//                    else Log.e(LOG_TAG, LOG_DELETED_UNSUCCESSFULLY)}, {})
-//        )
-//    }
-
     fun deleteNotificationById(notification: Notification) {
         compositeDisposable.add(
             repository.deleteNotificationById(notification.id)
