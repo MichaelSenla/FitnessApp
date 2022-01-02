@@ -3,7 +3,6 @@ package com.senla.fitnessapp.presentation.notification.notificationDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,12 +10,12 @@ import android.widget.DatePicker
 import android.widget.TimePicker
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import com.senla.fitnessapp.data.Repository
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.senla.fitnessapp.common.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationDialogBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class NotificationDialogFragment(private val notificationId: Int?,
@@ -28,18 +27,17 @@ class NotificationDialogFragment(private val notificationId: Int?,
         private const val EDITTEXT_IS_EMPTY_WARNING = "Пожалуйста, заполните даннные."
         private const val CREATE_NOTIFICATION_LABEL = "Создать"
         private const val SAVE_NOTIFICATION_LABEL = "Сохранить"
+        var savedDay = 0
+        var savedMonth = 0
+        var savedYear = 0
+        var savedHour = 0
+        var savedMinute = 0
     }
 
     private var _binding: FragmentNotificationDialogBinding? = null
     private val binding get() = _binding!!
-    private var savedDay = 0
-    private var savedMonth = 0
-    private var savedYear = 0
-    private var savedHour = 0
-    private var savedMinute = 0
-    @Inject
-    lateinit var repository: Repository
-    private lateinit var viewModel: NotificationDialogViewModel
+    private val viewModel: NotificationDialogViewModel by viewModels()
+    private lateinit var getNotificationObserver: Observer<Notification>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,17 +50,21 @@ class NotificationDialogFragment(private val notificationId: Int?,
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setTextToEditText()
+        if (notificationId != null) {
+            setGetNotificationObserver()
+            viewModel.notification.observe(this, getNotificationObserver)
+            viewModel.getNotificationById(notificationId)
+        } else {
+            binding.btnCreateNotification.text = CREATE_NOTIFICATION_LABEL
+        }
         setAllButtonsListeners()
     }
 
-    private fun setTextToEditText() {
-        if (notificationId != null) {
+    private fun setGetNotificationObserver() {
+        getNotificationObserver = Observer {
             binding.btnCreateNotification.text = SAVE_NOTIFICATION_LABEL
             binding.etNotificationText
-                .setText(repository.getNotificationById(notificationId)?.title)
-        } else {
-            binding.btnCreateNotification.text = CREATE_NOTIFICATION_LABEL
+                .setText(it.title)
         }
     }
 
@@ -90,50 +92,19 @@ class NotificationDialogFragment(private val notificationId: Int?,
             btnCreateNotification.setOnClickListener {
                 if (notificationId == null) {
                     if (etNotificationText.text.toString().isNotEmpty()) {
-                        createNotification()
+                        viewModel.createNotification(binding)
+                        this@NotificationDialogFragment.dismiss()
                     } else {
-                        Toast.makeText(
-                            requireContext(), EDITTEXT_IS_EMPTY_WARNING,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), EDITTEXT_IS_EMPTY_WARNING,
+                            Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    updateNotification()
+                    viewModel.updateNotification(notificationId, binding)
+                    this@NotificationDialogFragment.dismiss()
                 }
                 listener.refreshRecyclerView()
             }
         }
-    }
-
-    private fun createNotification() {
-        val status = repository.insertNotification(
-            Notification(
-                title = binding.etNotificationText.text.toString(),
-                time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
-                        "$savedHour:$savedMinute").toString()))
-
-        if (status > -1) {
-            Log.e("SQLite", "Notification was added!")
-        } else {
-            Log.e("SQLite", "Notification wasn't added")
-        }
-
-        this.dismiss()
-    }
-
-    private fun updateNotification() {
-        val status = repository.updateNotification(Notification(id = notificationId!!,
-            title = binding.etNotificationText.text.toString(),
-            time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
-                    "$savedHour:$savedMinute").toString()))
-
-        if (status > -1) {
-            Log.e("SQLite", "Notification was updated!")
-        } else {
-            Log.e("SQLite", "Notification wasn't updated")
-        }
-
-        this.dismiss()
     }
 
     private fun setAllButtonsListeners() {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.presentation.jogging.JoggingFragment
+import com.senla.fitnessapp.presentation.notification.NotificationFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

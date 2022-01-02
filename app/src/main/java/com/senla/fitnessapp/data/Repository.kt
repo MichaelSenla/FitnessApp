@@ -23,23 +23,23 @@ class Repository @Inject constructor(
     fun registerUser(query: String, registerRequest: RegisterRequest): Single<RegisterResponse> =
         retrofitService.registerUser(query, registerRequest)
 
-    fun insertNotification(notification: Notification): Long {
+    fun insertNotification(notification: Notification): Single<Long> {
         return sqLiteHelper.insertNotification(notification)
     }
 
-    fun getAllNotifications(): ArrayList<Notification> {
+    fun getAllNotifications(): Single<ArrayList<Notification>> {
         return sqLiteHelper.getAllNotifications()
     }
 
-    fun getNotificationById(id: Int): Notification? {
+    fun getNotificationById(id: Int): Single<Notification>? {
         return sqLiteHelper.getNotificationById(id)
     }
 
-    fun deleteNotificationById(id: Int): Int {
+    fun deleteNotificationById(id: Int): Single<Int> {
         return sqLiteHelper.deleteNotificationById(id)
     }
 
-    fun updateNotification(notification: Notification): Int {
+    fun updateNotification(notification: Notification): Single<Int> {
         return sqLiteHelper.updateNotification(notification)
     }
 }

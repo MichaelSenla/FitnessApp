@@ -2,19 +2,18 @@ package com.senla.fitnessapp.presentation.notification
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
-import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.common.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationBinding
-import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.main.MainFragment
-import com.senla.fitnessapp.presentation.navigation.SideNavigation
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment
 import com.senla.fitnessapp.presentation.notification.recyclerView.NotificationAdapter
@@ -22,7 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class NotificationFragment: Fragment(),
+class NotificationFragment : Fragment(),
     NotificationAdapter.OnNotificationAdapterItemClickListener,
     NotificationDialogFragment.RefreshRecyclerView {
 
@@ -33,12 +32,10 @@ class NotificationFragment: Fragment(),
     private var _binding: FragmentNotificationBinding? = null
     private val binding get() = _binding!!
     private val viewModel: NotificationViewModel by viewModels()
-    @Inject
-    lateinit var repository: Repository
-    private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var adapter: NotificationAdapter
     @Inject
     lateinit var sharedPreferences: SharedPreferences
+    lateinit var updateAdapterObserver: Observer<ArrayList<Notification>>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,9 +47,11 @@ class NotificationFragment: Fragment(),
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setNavigationMenuButtons(binding.navView, navigateToFragment, R.id.menuItemMain,
+        setNavigationMenuButtons(
+            binding.navView, navigateToFragment, R.id.menuItemMain,
             MainFragment(), sharedPreferences)
         setAddNotificationButton()
+        updateAdapterObserver = Observer { adapter.submitList(it) }
         initRecyclerView()
     }
 
@@ -60,7 +59,7 @@ class NotificationFragment: Fragment(),
         binding.fab.setOnClickListener {
             NotificationDialogFragment(null, this)
                 .show(requireActivity().supportFragmentManager,
-                NOTIFICATION_DIALOG_TAG)
+                    NOTIFICATION_DIALOG_TAG)
         }
     }
 
@@ -73,7 +72,23 @@ class NotificationFragment: Fragment(),
         adapter = NotificationAdapter(this@NotificationFragment)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
-        adapter.submitList(repository.getAllNotifications())
+        viewModel.notificationList.observe(this@NotificationFragment, updateAdapterObserver)
+        viewModel.getAllNotifications()
+    }
+
+    override fun deleteItem(notification: Notification) {
+        viewModel.deleteNotificationById(notification)
+    }
+
+    override fun changeItem(position: Int, id: Int) {
+        NotificationDialogFragment(id, this).show(
+            requireActivity().supportFragmentManager,
+            NOTIFICATION_DIALOG_TAG)
+    }
+
+    override fun refreshRecyclerView() {
+        viewModel.getAllNotifications()
+        Log.e("CHECKING","I'm here!")
     }
 
     override fun onDestroyView() {
@@ -82,17 +97,9 @@ class NotificationFragment: Fragment(),
         super.onDestroyView()
     }
 
-    override fun deleteItem(id: Int) {
-        repository.deleteNotificationById(id)
-        adapter.submitList(repository.getAllNotifications())
-    }
+    override fun onStop() {
+        viewModel.notificationList.removeObserver(updateAdapterObserver)
 
-    override fun changeItem(position: Int, id: Int) {
-        NotificationDialogFragment(id, this).show(requireActivity().supportFragmentManager,
-            NOTIFICATION_DIALOG_TAG)
-    }
-
-    override fun refreshRecyclerView() {
-        adapter.submitList(repository.getAllNotifications())
+        super.onStop()
     }
 }
