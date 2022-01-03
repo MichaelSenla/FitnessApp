@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
-import com.senla.fitnessapp.common.models.Notification
+import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationBinding
 import com.senla.fitnessapp.presentation.main.MainFragment
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons

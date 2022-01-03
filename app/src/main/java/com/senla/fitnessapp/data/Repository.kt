@@ -1,7 +1,8 @@
 package com.senla.fitnessapp.data
 
-import com.senla.fitnessapp.common.models.Notification
+import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.data.database.SQLiteHelper
+import com.senla.fitnessapp.data.database.models.Track
 import com.senla.fitnessapp.data.network.RetrofitService
 import com.senla.fitnessapp.data.network.models.LogInRequest
 import com.senla.fitnessapp.data.network.models.LogInResponse
@@ -41,5 +42,13 @@ class Repository @Inject constructor(
 
     fun updateNotification(notification: Notification): Single<Int> {
         return sqLiteHelper.updateNotification(notification)
+    }
+
+    fun insertTrack(track: Track): Single<Long> {
+        return sqLiteHelper.insertTrack(track)
+    }
+
+    fun getTrackById(id: Int): Single<Track>? {
+        return sqLiteHelper.getTrackById(id)
     }
 }

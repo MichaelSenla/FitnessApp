@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.senla.fitnessapp.common.models.Notification
+import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.data.Repository
 import com.senla.fitnessapp.databinding.FragmentNotificationDialogBinding
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedDay

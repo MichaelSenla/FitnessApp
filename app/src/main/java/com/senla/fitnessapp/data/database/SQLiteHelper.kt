@@ -5,7 +5,8 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.senla.fitnessapp.common.models.Notification
+import com.senla.fitnessapp.data.database.models.Notification
+import com.senla.fitnessapp.data.database.models.Track
 import io.reactivex.rxjava3.core.Single
 import java.lang.Exception
 
@@ -16,18 +17,23 @@ class SQLiteHelper(context: Context):
         private const val DATABASE_VERSION = 1
         private const val DATABASE_NAME = "notification.db"
         private const val TABLE_NOTIFICATION = "notification"
+        private const val TABLE_TRACK = "track"
         private const val ID = "id"
         private const val TITLE = "title"
         private const val TIME = "time"
+        private const val DESTINATION = "destination"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(("CREATE TABLE " + TABLE_NOTIFICATION + "(" + ID
                 + " INTEGER PRIMARY KEY," + TITLE + " TEXT," + TIME + " TEXT" + ")"))
+        db?.execSQL(("CREATE TABLE " + TABLE_TRACK + "(" + ID
+                + " INTEGER PRIMARY KEY," + DESTINATION + " TEXT" + ")"))
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_NOTIFICATION")
+        db?.execSQL("DROP TABLE IF EXISTS $TABLE_TRACK")
         onCreate(db)
     }
 
@@ -67,9 +73,9 @@ class SQLiteHelper(context: Context):
 
         if(cursor.moveToFirst()) {
             do {
-                id = cursor.getInt(cursor.getColumnIndex(ID))
-                title = cursor.getString(cursor.getColumnIndex(TITLE))
-                time = cursor.getString(cursor.getColumnIndex(TIME))
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
+                title = cursor.getString(cursor.getColumnIndexOrThrow(TITLE))
+                time = cursor.getString(cursor.getColumnIndexOrThrow(TIME))
 
                 val notification = Notification(id = id, title = title, time = time)
                 notificationList.add(notification)
@@ -88,9 +94,9 @@ class SQLiteHelper(context: Context):
         database.rawQuery(selectQuery, null).use {
             if (it.moveToFirst()) {
                 val notification = Notification()
-                notification.id = it.getInt(it.getColumnIndex(ID))
-                notification.title = it.getString(it.getColumnIndex(TITLE))
-                notification.time = it.getString(it.getColumnIndex(TIME))
+                notification.id = it.getInt(it.getColumnIndexOrThrow(ID))
+                notification.title = it.getString(it.getColumnIndexOrThrow(TITLE))
+                notification.time = it.getString(it.getColumnIndexOrThrow(TIME))
 
                 return Single.just(notification)
             }
@@ -125,5 +131,34 @@ class SQLiteHelper(context: Context):
         database.close()
 
         return Single.just(success)
+    }
+
+    fun insertTrack(track: Track): Single<Long> {
+        val database = this.writableDatabase
+
+        val contentValues = ContentValues()
+        contentValues.put(ID, track.id)
+        contentValues.put(DESTINATION, track.destination)
+
+        val success = database.insert(TABLE_TRACK, null, contentValues)
+        database.close()
+
+        return Single.just(success)
+    }
+
+    fun getTrackById(id: Int): Single<Track>? {
+        val database = this.readableDatabase
+        val selectQuery = "SELECT * FROM $TABLE_TRACK WHERE id = $id"
+
+        database.rawQuery(selectQuery, null).use {
+            if (it.moveToFirst()) {
+                val track = Track()
+                track.id = it.getInt(it.getColumnIndexOrThrow(ID))
+                track.destination = it.getString(it.getColumnIndexOrThrow(DESTINATION))
+
+                return Single.just(track)
+            }
+        }
+        return null
     }
 }

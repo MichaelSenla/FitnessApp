@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import com.senla.fitnessapp.common.models.Notification
+import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationDialogBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*

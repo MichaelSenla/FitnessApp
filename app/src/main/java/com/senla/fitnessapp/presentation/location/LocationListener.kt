@@ -1,10 +1,12 @@
 package com.senla.fitnessapp.presentation.location
 
+import android.location.Location
 import android.location.LocationListener
 
-class LocationListener(val location: Location): LocationListener{
+class LocationListener: LocationListener {
+    lateinit var gpsLocation: GpsLocation
 
-    override fun onLocationChanged(location: android.location.Location) {
-        //this.location.onLocationChanged()
+    override fun onLocationChanged(location: Location) {
+        gpsLocation.onLocationChanged(location)
     }
 }
