@@ -26,6 +26,7 @@ import com.senla.fitnessapp.R
 import com.senla.fitnessapp.databinding.FragmentJoggingBinding
 import com.senla.fitnessapp.presentation.jogging.service.TimerService
 import com.senla.fitnessapp.presentation.location.Location
+import com.senla.fitnessapp.presentation.location.LocationListener
 
 class JoggingFragment : Fragment(), Location {
 
@@ -42,128 +43,127 @@ class JoggingFragment : Fragment(), Location {
     private lateinit var flipAnimator: AnimatorSet
     private lateinit var locationManager: LocationManager
     private lateinit var location: Location
-//    private val requestPermissions = registerForActivityResult(ActivityResultContracts
-//        .RequestMultiplePermissions()) { permissions ->
-//        permissions.forEach { actionMap ->
-//            when (actionMap.key) {
-//                Manifest.permission.ACCESS_COARSE_LOCATION -> {
-//                    if (actionMap.value) {
-//                        Log.i("DEBUG", "Coarse location permission is granted")
-//                    } else {
-//                        !ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
-//                            Manifest.permission.ACCESS_COARSE_LOCATION)
-//                    }
-//                }
-//                Manifest.permission.ACCESS_FINE_LOCATION -> {
-//                    if (actionMap.value) {
-//                        Log.i("DEBUG", "Fine location permission is granted")
-//                    } else {
-//                        !ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
-//                            Manifest.permission.ACCESS_FINE_LOCATION)
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentJoggingBinding.inflate(inflater, container, false)
-
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setFlipAnimation()
-        setAllListeners()
-
-        requireContext().registerReceiver(updateTime, IntentFilter(TimerService.TIMER_UPDATED))
-
-        serviceIntent = Intent(requireContext(), TimerService::class.java)
-    }
-
-    private fun setAllListeners() {
-        setButtonStartListener()
-        setButtonFinishListener()
-    }
-
-    private fun setButtonStartListener() {
-        binding.btnStart.setOnClickListener {
-            with(binding) {
-                with(flipAnimator) {
-                    setTarget(btnStart)
-                    start()
+    private lateinit var locationListener: LocationListener
+    private val requestPermissions = registerForActivityResult(ActivityResultContracts
+        .RequestMultiplePermissions()) { permissions ->
+        permissions.forEach { actionMap ->
+            when (actionMap.key) {
+                Manifest.permission.ACCESS_COARSE_LOCATION -> {
+                    if (actionMap.value) {
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, minDistancem = 1, )
+                        Log.i("DEBUG", "Coarse location permission is granted")
+                    } else {
+                        !ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
+                            Manifest.permission.ACCESS_COARSE_LOCATION)
+                    }
                 }
-                Handler(Looper.getMainLooper()).postDelayed({
-                    btnStart.isVisible = false
-                    btnFinish.isVisible = true
-                    tvTime.isVisible = true
-                    startTimer()
-                }, DELAY)
+                Manifest.permission.ACCESS_FINE_LOCATION -> {
+                    if (actionMap.value) {
+                        Log.i("DEBUG", "Fine location permission is granted")
+                    } else {
+                        !ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                }
             }
         }
     }
 
-    private fun setButtonFinishListener() {
-        binding.btnFinish.setOnClickListener {
-            stopTimer()
-            with(binding) {
-                tvTime.isVisible = true
-                btnFinish.isVisible = false
-            }
-        }
-    }
+                    override fun onCreateView(
+                        inflater: LayoutInflater, container: ViewGroup?,
+                        savedInstanceState: Bundle?
+                    ): View {
+                        _binding = FragmentJoggingBinding.inflate(inflater, container, false)
 
-    private fun setFlipAnimation() {
-        val scale = requireContext().resources.displayMetrics.density
+                        return binding.root
+                    }
 
-        binding.btnStart.cameraDistance = 8000 * scale
+                    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+                        setFlipAnimation()
+                        setAllListeners()
 
-        flipAnimator = AnimatorInflater.loadAnimator(requireContext(),
-            R.animator.front_animator) as AnimatorSet
-    }
+                        requireContext().registerReceiver(updateTime, IntentFilter(TimerService.TIMER_UPDATED))
 
-    private fun startTimer() {
-        serviceIntent.putExtra(TimerService.TIME_EXTRA, time)
-        requireContext().startService(serviceIntent)
-        timerStarted = true
-    }
+                        serviceIntent = Intent(requireContext(), TimerService::class.java)
+                        requestPermissions.launch(
+                            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION))
+                    }
 
-    private fun stopTimer() {
-        requireContext().stopService(serviceIntent)
-        timerStarted = false
-    }
+                    private fun setAllListeners() {
+                        setButtonStartListener()
+                        setButtonFinishListener()
+                    }
 
-    private fun initLocation() {
-        locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE)
-                as LocationManager
-    }
+                    private fun setButtonStartListener() {
+                        binding.btnStart.setOnClickListener {
+                            with(binding) {
+                                with(flipAnimator) {
+                                    setTarget(btnStart)
+                                    start()
+                                }
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    btnStart.isVisible = false
+                                    btnFinish.isVisible = true
+                                    tvTime.isVisible = true
+                                    startTimer()
+                                }, DELAY)
+                            }
+                        }
+                    }
 
-    private fun checkPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat
-                .checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED && ActivityCompat
-                .checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
+                    private fun setButtonFinishListener() {
+                        binding.btnFinish.setOnClickListener {
+                            stopTimer()
+                            with(binding) {
+                                tvTime.isVisible = true
+                                btnFinish.isVisible = false
+                            }
+                        }
+                    }
 
-    }}
+                    private fun setFlipAnimation() {
+                        val scale = requireContext().resources.displayMetrics.density
 
-    private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            time = intent.getDoubleExtra(TimerService.TIME_EXTRA, 0.0)
-            binding.tvTime.text = viewModel.getTimeStringFromDouble(time)
-        }
-    }
+                        binding.btnStart.cameraDistance = 8000 * scale
 
-    override fun onDestroyView() {
-        _binding = null
+                        flipAnimator = AnimatorInflater.loadAnimator(requireContext(),
+                            R.animator.front_animator) as AnimatorSet
+                    }
 
-        super.onDestroyView()
-    }
+                    private fun startTimer() {
+                        serviceIntent.putExtra(TimerService.TIME_EXTRA, time)
+                        requireContext().startService(serviceIntent)
+                        timerStarted = true
+                    }
 
-    override fun onLocationChanged(location: Location) {
+                    private fun stopTimer() {
+                        requireContext().stopService(serviceIntent)
+                        timerStarted = false
+                    }
 
-    }
-}
+                    private fun initLocation() {
+                        locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE)
+                                as LocationManager
+                        locationListener = LocationListener()
+                        locationListener.onLocationChanged()
+
+                    }
+
+                    private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context, intent: Intent) {
+                            time = intent.getDoubleExtra(TimerService.TIME_EXTRA, 0.0)
+                            binding.tvTime.text = viewModel.getTimeStringFromDouble(time)
+                        }
+                    }
+
+                    override fun onDestroyView() {
+                        _binding = null
+
+                        super.onDestroyView()
+                    }
+
+                    override fun onLocationChanged(location: Location) {
+
+                    }
+                }

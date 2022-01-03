@@ -20,7 +20,7 @@ class MainActivity: AppCompatActivity() {
 
     private fun navigateToSplashFragment() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, NotificationFragment()).commit()
+            .replace(R.id.fragmentContainer, JoggingFragment()).commit()
     }
 
     private fun setSupportActionBar() {
