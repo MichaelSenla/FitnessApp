@@ -53,7 +53,7 @@ class SQLiteHelper(context: Context):
 
     fun getAllNotifications(): Single<ArrayList<Notification>> {
         val notificationList: ArrayList<Notification> = ArrayList()
-        val selectQuery = "SELECT * FROM $TABLE_NOTIFICATION "
+        val selectQuery = "SELECT * FROM $TABLE_NOTIFICATION"
         val database = this.readableDatabase
 
         val cursor: Cursor?
@@ -160,5 +160,39 @@ class SQLiteHelper(context: Context):
             }
         }
         return null
+    }
+
+    fun getAllTracks(): Single<ArrayList<Track>> {
+        val trackList: ArrayList<Track> = ArrayList()
+        val selectQuery = "SELECT * FROM $TABLE_TRACK"
+        val database = this.readableDatabase
+
+        val cursor: Cursor?
+
+        try {
+            cursor = database.rawQuery(selectQuery, null)
+        } catch (e: Exception) {
+            database.execSQL(selectQuery)
+            e.printStackTrace()
+
+            return Single.just(trackList)
+        }
+
+        var id: Int
+        var destination: String
+
+        if(cursor.moveToFirst()) {
+            do {
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
+                destination = cursor.getString(cursor.getColumnIndexOrThrow(DESTINATION))
+
+                val track = Track(id = id, destination = destination)
+                trackList.add(track)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+
+        return Single.just(trackList)
     }
 }

@@ -4,18 +4,19 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.data.database.SQLiteRepository
+import com.senla.fitnessapp.data.database.models.Notification
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import javax.inject.Inject
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
     val sqLiteRepository: SQLiteRepository,
-    private val compositeDisposable: CompositeDisposable
+    val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
     companion object {
@@ -29,11 +30,14 @@ class NotificationViewModel @Inject constructor(
         get() = _notificationList
 
     fun getAllNotifications() {
+        Log.i("RV Checking", "Before init: ${_notificationList.value}")
         compositeDisposable.add(
             sqLiteRepository.getAllNotifications()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _notificationList.value = it }, {}))
+                .subscribe({ _notificationList.value = it }, {}) ?: Disposable.empty()
+        )
+        Log.i("RV Checking", "After init: ${_notificationList.value}")
     }
 
     fun deleteNotificationById(notification: Notification) {
@@ -49,7 +53,8 @@ class NotificationViewModel @Inject constructor(
                     }
                     if (it > -1) Log.e(LOG_TAG, LOG_DELETED_SUCCESSFULLY)
                     else Log.e(LOG_TAG, LOG_DELETED_UNSUCCESSFULLY)
-                }, {}))
+                }, {})
+        )
     }
 
     override fun onCleared() {

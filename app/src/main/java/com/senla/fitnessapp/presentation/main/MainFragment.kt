@@ -9,11 +9,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
+import com.senla.fitnessapp.data.database.models.Track
 import com.senla.fitnessapp.databinding.FragmentMainBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.jogging.JoggingFragment
+import com.senla.fitnessapp.presentation.main.recyclerView.TrackAdapter
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setMenuExitButton
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
 import com.senla.fitnessapp.presentation.notification.NotificationFragment
@@ -21,14 +26,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainFragment(): Fragment() {
+class MainFragment : Fragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var toggle: ActionBarDrawerToggle
-    @Inject
-    lateinit var sharedPreferences: SharedPreferences
+    private var adapter: TrackAdapter? = null
+    private var trackListObserver: Observer<ArrayList<Track>>? = null
+    @set:Inject
+    var sharedPreferences: SharedPreferences? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +48,16 @@ class MainFragment(): Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         setMainFragmentListeners()
         setNavigationMenuButtons(binding.navView, navigateToFragment, R.id.menuItemNotification,
-            NotificationFragment(), sharedPreferences)
+            NotificationFragment(), sharedPreferences!!)
+        initRecyclerView()
+    }
+
+    private fun initRecyclerView() {
+        adapter = TrackAdapter()
+        with(binding.recyclerView) {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = adapter
+        }
     }
 
     private fun setMainFragmentListeners() {
@@ -60,5 +75,10 @@ class MainFragment(): Fragment() {
         _binding = null
 
         super.onDestroyView()
+    }
+
+    override fun onStart() {
+//        trackListObserver = Observer { adapter?.submitList(it) }
+        super.onStart()
     }
 }

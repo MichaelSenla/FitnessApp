@@ -19,8 +19,8 @@ import kotlin.math.roundToInt
 @HiltViewModel
 class JoggingViewModel @Inject constructor(
     val sqLiteRepository: SQLiteRepository,
-    private val networkRepository: NetworkRepository,
-    private val compositeDisposable: CompositeDisposable
+    val networkRepository: NetworkRepository,
+    val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
     private val _track = MutableLiveData<Track>()
@@ -31,21 +31,25 @@ class JoggingViewModel @Inject constructor(
     private val saveTrackResponse: LiveData<SaveTrackResponse>
         get() = _saveTrackResponse
 
+    private val _trackWasInserted = MutableLiveData<Boolean>()
+    private val trackWasInserted: LiveData<Boolean>
+        get() = _trackWasInserted
+
+
     fun saveTrack(query: String, saveTrackRequest: SaveTrackRequest) {
         compositeDisposable.add(
             networkRepository.saveTrack(query, saveTrackRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({_saveTrackResponse.value = it}, {})
+                .subscribe({ _saveTrackResponse.value = it }, {})
         )
     }
 
     fun insertTrack(track: Track) {
         compositeDisposable.add(
-            sqLiteRepository.insertTrack(track)
-                .subscribeOn(Schedulers.io())
+            sqLiteRepository.insertTrack(track).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({if (it <= -1) Log.e("SQLite", "Task wasn't added")}, {})
+                .subscribe({ if (it > -1) _trackWasInserted.value = true }, {})
         )
     }
 
@@ -54,8 +58,7 @@ class JoggingViewModel @Inject constructor(
             sqLiteRepository.getTrackById(id)
             !!.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({_track.value = it}, {})
-        )
+                .subscribe({ _track.value = it }, {}))
     }
 
     fun getTimeStringFromDouble(time: Double): String {

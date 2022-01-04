@@ -13,7 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class DistanceFragment : Fragment() {
 
-    private lateinit var viewModel: DistanceViewModel
+    private var viewModel: DistanceViewModel? = null
     private var _binding: FragmentDistanceBinding? = null
     private val binding get() = _binding!!
 

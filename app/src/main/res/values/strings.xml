@@ -26,4 +26,11 @@
 
     <string name="fragment_jogging_start_label">Старт</string>
     <string name="fragment_jogging_finish_label">Финиш</string>
+    <string name="fragment_jogging_time_template">00:00:00</string>
+
+    <string name="layout_popup_window_error_text">Пожалуйста, проверьте интернет соединение.
+    </string>
+    <string name="layout_popup_window_restart_app_text">Пожалуйста, проверьте интернет соединение и
+        перезапустите приложение.</string>
+    <string name="layout_popup_window_main_fragment_text">Главный экран</string>
 </resources>

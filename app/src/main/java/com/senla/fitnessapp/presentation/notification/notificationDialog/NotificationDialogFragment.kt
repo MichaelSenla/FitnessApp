@@ -18,8 +18,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
 @AndroidEntryPoint
-class NotificationDialogFragment(private val notificationId: Int?,
-                                 private val listener: RefreshRecyclerView):
+class NotificationDialogFragment(
+    private val notificationId: Int?,
+    private val listener: RefreshRecyclerView
+) :
     DialogFragment(), DatePickerDialog.OnDateSetListener,
     TimePickerDialog.OnTimeSetListener {
 
@@ -37,7 +39,8 @@ class NotificationDialogFragment(private val notificationId: Int?,
     private var _binding: FragmentNotificationDialogBinding? = null
     private val binding get() = _binding!!
     private val viewModel: NotificationDialogViewModel by viewModels()
-    private lateinit var getNotificationObserver: Observer<Notification>
+    private var getNotificationObserver: Observer<Notification>? = null
+    private var notificationWasCreatedOrUpdatedObserver: Observer<Boolean>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,8 +54,6 @@ class NotificationDialogFragment(private val notificationId: Int?,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (notificationId != null) {
-            setGetNotificationObserver()
-            viewModel.notification.observe(this, getNotificationObserver)
             viewModel.getNotificationById(notificationId)
         } else {
             binding.btnCreateNotification.text = CREATE_NOTIFICATION_LABEL
@@ -60,19 +61,20 @@ class NotificationDialogFragment(private val notificationId: Int?,
         setAllButtonsListeners()
     }
 
-    private fun setGetNotificationObserver() {
+    private fun getNotificationObserver(): Observer<Notification>? {
         getNotificationObserver = Observer {
             binding.btnCreateNotification.text = SAVE_NOTIFICATION_LABEL
             binding.etNotificationText
                 .setText(it.title)
         }
+        return getNotificationObserver
     }
 
     private fun setChooseDayButtonListener() {
         binding.btnChooseDay.setOnClickListener {
             val day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
-            val month = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
-            val year = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+            val month = Calendar.getInstance().get(Calendar.MONTH)
+            val year = Calendar.getInstance().get(Calendar.YEAR)
 
             DatePickerDialog(requireContext(), this, year, month, day).show()
         }
@@ -91,20 +93,30 @@ class NotificationDialogFragment(private val notificationId: Int?,
         with(binding) {
             btnCreateNotification.setOnClickListener {
                 if (notificationId == null) {
-                    if (etNotificationText.text.toString().isNotEmpty()) {
+                    if (validationDone()) {
                         viewModel.createNotification(binding)
-                        this@NotificationDialogFragment.dismiss()
                     } else {
-                        Toast.makeText(requireContext(), EDITTEXT_IS_EMPTY_WARNING,
-                            Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(), EDITTEXT_IS_EMPTY_WARNING, Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else {
-                    viewModel.updateNotification(notificationId, binding)
-                    this@NotificationDialogFragment.dismiss()
+                    if (validationDone()) {
+                        viewModel.updateNotification(notificationId, binding)
+                    } else {
+                        Toast.makeText(
+                            requireContext(), EDITTEXT_IS_EMPTY_WARNING, Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
                 listener.refreshRecyclerView()
             }
         }
+    }
+
+    private fun validationDone(): Boolean {
+        return (binding.etNotificationText.text.toString().isNotEmpty() && savedDay != 0 &&
+                savedYear != 0 && savedMinute != 0 && savedHour != 0)
     }
 
     private fun setAllButtonsListeners() {
@@ -128,6 +140,25 @@ class NotificationDialogFragment(private val notificationId: Int?,
         _binding = null
 
         super.onDestroyView()
+    }
+
+    override fun onStart() {
+        notificationWasCreatedOrUpdatedObserver =
+            Observer { this@NotificationDialogFragment.dismiss() }
+        viewModel.notification.observe(this, getNotificationObserver()!!)
+        viewModel.notificationWasCreatedOrUpdated.observe(
+            this, notificationWasCreatedOrUpdatedObserver!!
+        )
+
+        super.onStart()
+    }
+
+    override fun onStop() {
+        viewModel.notification.removeObserver(getNotificationObserver!!)
+        viewModel.notificationWasCreatedOrUpdated
+            .removeObserver(notificationWasCreatedOrUpdatedObserver!!)
+
+        super.onStop()
     }
 
     interface RefreshRecyclerView {

@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/small_padding"
-        android:text="00:00:00"
+        android:text="@string/fragment_jogging_time_template"
         android:visibility="gone"
         android:textAlignment="center"
         android:textColor="@color/red_tamarillo"
@@ -43,7 +43,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Some"
-        android:textSize="@dimen/large_text_size"/>
+        android:gravity="center"
+        android:padding="@dimen/medium_padding"
+        android:textSize="@dimen/medium_text_size"/>
 
     <TextView
         android:id="@+id/tvSpeed"

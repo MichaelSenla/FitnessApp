@@ -4,9 +4,9 @@ import android.location.Location
 import android.location.LocationListener
 
 class LocationListener: LocationListener {
-    lateinit var gpsLocation: GpsLocation
+    var gpsLocation: GpsLocation? = null
 
     override fun onLocationChanged(location: Location) {
-        gpsLocation.onLocationChanged(location)
+        gpsLocation?.onLocationChanged(location)
     }
 }

@@ -32,10 +32,10 @@ class NotificationFragment : Fragment(),
     private var _binding: FragmentNotificationBinding? = null
     private val binding get() = _binding!!
     private val viewModel: NotificationViewModel by viewModels()
-    private lateinit var adapter: NotificationAdapter
-    @Inject
-    lateinit var sharedPreferences: SharedPreferences
-    lateinit var updateAdapterObserver: Observer<ArrayList<Notification>>
+    private var adapter: NotificationAdapter? = null
+    @set:Inject
+    var sharedPreferences: SharedPreferences? = null
+    private var updateAdapterObserver: Observer<ArrayList<Notification>>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,9 +49,9 @@ class NotificationFragment : Fragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemMain,
-            MainFragment(), sharedPreferences)
+            MainFragment(), sharedPreferences!!)
+        Log.i("RV Checking", "$viewModel")
         setAddNotificationButton()
-        updateAdapterObserver = Observer { adapter.submitList(it) }
         initRecyclerView()
     }
 
@@ -69,10 +69,10 @@ class NotificationFragment : Fragment(),
     }
 
     private fun initRecyclerView() = with(binding) {
-        adapter = NotificationAdapter(this@NotificationFragment)
+        adapter = NotificationAdapter()
+        adapter?.listener = this@NotificationFragment
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
-        viewModel.notificationList.observe(this@NotificationFragment, updateAdapterObserver)
         viewModel.getAllNotifications()
     }
 
@@ -97,8 +97,15 @@ class NotificationFragment : Fragment(),
         super.onDestroyView()
     }
 
+    override fun onStart() {
+        updateAdapterObserver = Observer { adapter?.submitList(it) }
+        viewModel.notificationList.observe(this@NotificationFragment, updateAdapterObserver!!)
+
+        super.onStart()
+    }
+
     override fun onStop() {
-        viewModel.notificationList.removeObserver(updateAdapterObserver)
+        viewModel.notificationList.removeObserver(updateAdapterObserver!!)
 
         super.onStop()
     }

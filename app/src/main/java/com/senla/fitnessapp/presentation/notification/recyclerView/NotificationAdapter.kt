@@ -1,6 +1,5 @@
 package com.senla.fitnessapp.presentation.notification.recyclerView
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -9,28 +8,29 @@ import androidx.recyclerview.widget.RecyclerView
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.NotificationListItemBinding
 
-class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) :
+class NotificationAdapter :
     ListAdapter<Notification, NotificationAdapter.ItemHolder>(ItemComparator()) {
 
-    inner class ItemHolder(private val binding: NotificationListItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    var listener: OnNotificationAdapterItemClickListener? = null
+
+    class ItemHolder(private val binding: NotificationListItemBinding,
+                     private val listener: OnNotificationAdapterItemClickListener?)
+        : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(notification: Notification) = with(binding) {
             tvNotificationTitle.text = notification.title
             tvNotificationDateAndTime.text = notification.time
         }
 
-        init {
+        fun setListeners(notification: Notification) {
             with(binding) {
                 root.setOnClickListener {
                     if (adapterPosition != RecyclerView.NO_POSITION) {
-                        listener.changeItem(adapterPosition, getItem(adapterPosition).id)
+                        listener?.changeItem(adapterPosition, notification.id)
                     }
                 }
                 ivDeleteIcon.setOnClickListener {
-                    Log.e("ADAPTER", adapterPosition.toString())
-                    Log.e("LISTSIZE", itemCount.toString())
-                    listener.deleteItem(getItem(adapterPosition))
+                    listener?.deleteItem(notification) //getItem(adapterPosition)
                 }
             }
         }
@@ -51,11 +51,12 @@ class NotificationAdapter(val listener: OnNotificationAdapterItemClickListener) 
 
         return ItemHolder(
             NotificationListItemBinding.inflate(LayoutInflater.from(parent.context),
-                parent, false))
+                parent, false), listener)
     }
 
     override fun onBindViewHolder(holder: ItemHolder, position: Int) {
         holder.bind(getItem(position))
+        holder.setListeners(getItem(position))
     }
 
     override fun submitList(list: MutableList<Notification>?) {

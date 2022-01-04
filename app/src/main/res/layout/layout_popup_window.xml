@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
 
     <TextView
+        android:id="@+id/tvNoInternetConnectionError"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/medium_padding"
+        android:gravity="center"
+        android:text="@string/layout_popup_window_error_text"
         android:textColor="@color/black"
-        android:textSize="@dimen/medium_text_size"/>
-</FrameLayout>
+        android:textSize="@dimen/medium_text_size" />
+
+    <Button
+        android:id="@+id/btnGoToMainFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/grey_bon_jour"
+        android:text="@string/layout_popup_window_main_fragment_text"
+        android:textColor="@color/black"
+        android:textAllCaps="false"/>
+</LinearLayout>

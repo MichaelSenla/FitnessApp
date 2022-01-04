@@ -8,10 +8,7 @@ import com.senla.fitnessapp.data.network.models.*
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
-class SQLiteRepository {
-
-    @Inject
-    lateinit var sqLiteHelper: SQLiteHelper
+class SQLiteRepository @Inject constructor(private val sqLiteHelper: SQLiteHelper) {
 
     fun insertNotification(notification: Notification): Single<Long> {
         return sqLiteHelper.insertNotification(notification)
@@ -33,11 +30,9 @@ class SQLiteRepository {
         return sqLiteHelper.updateNotification(notification)
     }
 
-    fun insertTrack(track: Track): Single<Long> {
-        return sqLiteHelper.insertTrack(track)
-    }
+    fun insertTrack(track: Track): Single<Long> = sqLiteHelper.insertTrack(track)
 
-    fun getTrackById(id: Int): Single<Track>? {
-        return sqLiteHelper.getTrackById(id)
-    }
+    fun getTrackById(id: Int): Single<Track>? = sqLiteHelper.getTrackById(id)
+
+    fun getAllTracks(): Single<ArrayList<Track>> = sqLiteHelper.getAllTracks()
 }

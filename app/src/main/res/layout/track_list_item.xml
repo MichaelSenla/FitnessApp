@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="100dp">
+
+    <TextView
+        android:id="@+id/tvDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distance"
+        android:layout_margin="@dimen/medium_margin"
+        android:textSize="@dimen/big_text_size"/>
+
+    <TextView
+        android:id="@+id/tvStartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start time"
+        android:textSize="@dimen/medium_text_size"
+        android:layout_gravity="bottom"
+        android:layout_margin="@dimen/medium_margin"/>
+
+    <TextView
+        android:id="@+id/tvJoggingTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Jogging Time"
+        android:layout_gravity="center|end"
+        android:textSize="@dimen/medium_text_size"
+        android:layout_margin="@dimen/medium_margin"/>
+</androidx.cardview.widget.CardView>

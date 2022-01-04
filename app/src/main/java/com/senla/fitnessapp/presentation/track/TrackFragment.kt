@@ -20,7 +20,7 @@ class TrackFragment: Fragment() {
     private var _binding: FragmentTrackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: TrackViewModel by viewModels()
-    private lateinit var toggle: ActionBarDrawerToggle
+    private var toggle: ActionBarDrawerToggle? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,8 +40,8 @@ class TrackFragment: Fragment() {
         toggle = ActionBarDrawerToggle(requireActivity(), binding.drawerLayout,
             R.string.fragment_main_open_navigation_label,
             R.string.fragment_main_close_navigation_label)
-        binding.drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
+        binding.drawerLayout.addDrawerListener(toggle!!)
+        toggle?.syncState()
     }
 
     private fun setNavigationMenuButtons() {

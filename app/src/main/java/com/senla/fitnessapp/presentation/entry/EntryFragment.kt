@@ -47,10 +47,10 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private val binding get() = _binding!!
     private val entryViewModel: EntryViewModel by viewModels()
     private var logInFlag: Boolean = true
-    private lateinit var logInResponseObserver: Observer<LogInResponse>
-    private lateinit var registrationResponseObserver: Observer<RegisterResponse>
-    @Inject
-    lateinit var sharedPreferences: SharedPreferences
+    private var logInResponseObserver: Observer<LogInResponse>? = null
+    private var registrationResponseObserver: Observer<RegisterResponse>? = null
+    @set:Inject
+    var sharedPreferences: SharedPreferences? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,7 +63,7 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (sharedPreferences.getString(SHARED_PREFERENCES_TOKEN_KEY, null) != null) {
+        if (sharedPreferences?.getString(SHARED_PREFERENCES_TOKEN_KEY, null) != null) {
             navigateToFragment(MainFragment())
         } else {
             configureLayout()
@@ -81,8 +81,8 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
         logInResponseObserver = Observer {
             if (it?.status == SERVER_SUCCESS_RESPONSE) {
                 Log.e("Testing", it.status)
-                sharedPreferences.edit().putString(SHARED_PREFERENCES_TOKEN_KEY,
-                    it.token).apply()
+                sharedPreferences?.edit()?.putString(SHARED_PREFERENCES_TOKEN_KEY,
+                    it.token)?.apply()
 
                 navigateToFragment(MainFragment())
             } else if (it?.status == SERVER_ERROR_RESPONSE){
@@ -94,8 +94,8 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private fun setRegistrationObserver() {
         registrationResponseObserver = Observer {
             if (it.status == SERVER_SUCCESS_RESPONSE) {
-                sharedPreferences.edit().putString(SHARED_PREFERENCES_TOKEN_KEY,
-                    it.token).apply()
+                sharedPreferences?.edit()?.putString(SHARED_PREFERENCES_TOKEN_KEY,
+                    it.token)?.apply()
 
                 navigateToFragment(MainFragment())
             } else if (it.status == SERVER_ERROR_RESPONSE) {
@@ -162,13 +162,13 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     override fun onStart() {
         super.onStart()
 
-        entryViewModel.logInResponse.observe(this, logInResponseObserver)
-        entryViewModel.registerResponse.observe(this, registrationResponseObserver)
+        entryViewModel.logInResponse.observe(this, logInResponseObserver!!)
+        entryViewModel.registerResponse.observe(this, registrationResponseObserver!!)
     }
 
     override fun onStop() {
-        entryViewModel.logInResponse.removeObserver(logInResponseObserver)
-        entryViewModel.registerResponse.removeObserver(registrationResponseObserver)
+        entryViewModel.logInResponse.removeObserver(logInResponseObserver!!)
+        entryViewModel.registerResponse.removeObserver(registrationResponseObserver!!)
 
         super.onStop()
     }
