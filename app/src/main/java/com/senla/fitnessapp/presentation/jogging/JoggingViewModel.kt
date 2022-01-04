@@ -4,8 +4,11 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.data.database.SQLiteRepository
 import com.senla.fitnessapp.data.database.models.Track
+import com.senla.fitnessapp.data.network.NetworkRepository
+import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
+import com.senla.fitnessapp.data.network.models.SaveTrackResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -15,7 +18,8 @@ import kotlin.math.roundToInt
 
 @HiltViewModel
 class JoggingViewModel @Inject constructor(
-    val repository: Repository,
+    val sqLiteRepository: SQLiteRepository,
+    private val networkRepository: NetworkRepository,
     private val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
@@ -23,9 +27,22 @@ class JoggingViewModel @Inject constructor(
     val track: LiveData<Track>
         get() = _track
 
+    private val _saveTrackResponse = MutableLiveData<SaveTrackResponse>()
+    private val saveTrackResponse: LiveData<SaveTrackResponse>
+        get() = _saveTrackResponse
+
+    fun saveTrack(query: String, saveTrackRequest: SaveTrackRequest) {
+        compositeDisposable.add(
+            networkRepository.saveTrack(query, saveTrackRequest)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({_saveTrackResponse.value = it}, {})
+        )
+    }
+
     fun insertTrack(track: Track) {
         compositeDisposable.add(
-            repository.insertTrack(track)
+            sqLiteRepository.insertTrack(track)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({if (it <= -1) Log.e("SQLite", "Task wasn't added")}, {})
@@ -34,7 +51,7 @@ class JoggingViewModel @Inject constructor(
 
     fun getTrackById(id: Int) {
         compositeDisposable.add(
-            repository.getTrackById(id)
+            sqLiteRepository.getTrackById(id)
             !!.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({_track.value = it}, {})

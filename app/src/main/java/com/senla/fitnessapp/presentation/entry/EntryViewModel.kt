@@ -3,11 +3,10 @@ package com.senla.fitnessapp.presentation.entry
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.UnderlineSpan
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.data.network.NetworkRepository
 import com.senla.fitnessapp.data.network.models.LogInRequest
 import com.senla.fitnessapp.data.network.models.LogInResponse
 import com.senla.fitnessapp.data.network.models.RegisterRequest
@@ -16,13 +15,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class EntryViewModel @Inject constructor(
     private val compositeDisposable: CompositeDisposable,
-    private val repository: Repository
+    private val networkRepository: NetworkRepository
 ): ViewModel() {
 
     private val _logInResponse = MutableLiveData<LogInResponse>()
@@ -45,7 +43,7 @@ class EntryViewModel @Inject constructor(
 
     fun registerUser(query: String, registerRequest: RegisterRequest) {
             compositeDisposable.add(
-                    repository.registerUser(query, registerRequest)
+                    networkRepository.registerUser(query, registerRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({_registerResponse.value = it}, {}))
@@ -53,7 +51,7 @@ class EntryViewModel @Inject constructor(
 
     fun userLogIn(query: String, logInRequest: LogInRequest) {
         compositeDisposable.add(
-            repository.userLogIn(query, logInRequest)
+            networkRepository.userLogIn(query, logInRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({_logInResponse.value = it}, {}))

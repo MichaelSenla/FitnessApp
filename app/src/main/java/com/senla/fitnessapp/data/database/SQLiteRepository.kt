@@ -1,28 +1,17 @@
-package com.senla.fitnessapp.data
+package com.senla.fitnessapp.data.database
 
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.data.database.SQLiteHelper
 import com.senla.fitnessapp.data.database.models.Track
 import com.senla.fitnessapp.data.network.RetrofitService
-import com.senla.fitnessapp.data.network.models.LogInRequest
-import com.senla.fitnessapp.data.network.models.LogInResponse
-import com.senla.fitnessapp.data.network.models.RegisterRequest
-import com.senla.fitnessapp.data.network.models.RegisterResponse
+import com.senla.fitnessapp.data.network.models.*
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
-class Repository @Inject constructor(
-    private val retrofitService: RetrofitService
-) {
+class SQLiteRepository {
 
     @Inject
     lateinit var sqLiteHelper: SQLiteHelper
-
-    fun userLogIn(query: String, logInRequest: LogInRequest): Single<LogInResponse> =
-        retrofitService.userLogIn(query, logInRequest)
-
-    fun registerUser(query: String, registerRequest: RegisterRequest): Single<RegisterResponse> =
-        retrofitService.registerUser(query, registerRequest)
 
     fun insertNotification(notification: Notification): Single<Long> {
         return sqLiteHelper.insertNotification(notification)

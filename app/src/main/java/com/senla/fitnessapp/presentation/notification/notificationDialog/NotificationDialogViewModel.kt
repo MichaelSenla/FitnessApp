@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.database.models.Notification
-import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.data.database.SQLiteRepository
 import com.senla.fitnessapp.databinding.FragmentNotificationDialogBinding
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedDay
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedHour
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NotificationDialogViewModel @Inject constructor(
-    val repository: Repository,
+    val sqLiteRepository: SQLiteRepository,
     val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
@@ -35,7 +35,7 @@ class NotificationDialogViewModel @Inject constructor(
 
     fun createNotification(titleBinding: FragmentNotificationDialogBinding) {
         compositeDisposable.add(
-            repository.insertNotification(
+            sqLiteRepository.insertNotification(
                 Notification(title = titleBinding.etNotificationText.text.toString(),
                     time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
                             "$savedHour:$savedMinute").toString()))
@@ -47,7 +47,7 @@ class NotificationDialogViewModel @Inject constructor(
 
     fun updateNotification(notificationId: Int?, binding: FragmentNotificationDialogBinding) {
         compositeDisposable.add(
-            repository.updateNotification(
+            sqLiteRepository.updateNotification(
                 Notification(id = notificationId!!,
                 title = binding.etNotificationText.text.toString(),
                 time = StringBuilder("$savedDay/$savedMonth/$savedYear " +
@@ -60,7 +60,7 @@ class NotificationDialogViewModel @Inject constructor(
     }
 
     fun getNotificationById(id: Int) {
-        compositeDisposable.add(repository.getNotificationById(id)
+        compositeDisposable.add(sqLiteRepository.getNotificationById(id)
         !!.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({_notification.value = it}, {}))

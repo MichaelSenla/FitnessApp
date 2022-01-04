@@ -3,37 +3,44 @@ package com.senla.fitnessapp.presentation.jogging
 import android.Manifest
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.senla.fitnessapp.R
+import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
 import com.senla.fitnessapp.data.database.models.Track
+import com.senla.fitnessapp.data.network.models.saveTrackRequest.Point
+import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
 import com.senla.fitnessapp.databinding.FragmentJoggingBinding
 import com.senla.fitnessapp.presentation.jogging.service.TimerService
 import com.senla.fitnessapp.presentation.location.GpsLocation
 import com.senla.fitnessapp.presentation.location.LocationListener
+import javax.inject.Inject
 
 class JoggingFragment : Fragment(), GpsLocation {
 
     companion object {
         private const val DELAY = 600L
+        private const val SAVE_TRACK_QUERY = "save"
+        private const val START_TIME_COUNT_NUMBER = 100
     }
 
     private var _binding: FragmentJoggingBinding? = null
@@ -42,29 +49,37 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var timerStarted = false
     private var distance = 0
     private var time = 0.0
+    private var point = Point(0.0,0.0)
+    @Inject
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var serviceIntent: Intent
     private lateinit var flipAnimator: AnimatorSet
     private lateinit var locationManager: LocationManager
     private var lastLocation: Location? = null
     private lateinit var locationListener: LocationListener
     private val requestPermissions = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
         permissions.forEach { actionMap ->
             when (actionMap.key) {
                 Manifest.permission.ACCESS_COARSE_LOCATION -> {
                     if (actionMap.value) {
                         checkPermissions()
                     } else {
-                        Toast.makeText(requireContext(), "GPS permissions weren't provided",
-                            Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(), "GPS permissions weren't provided",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
                 Manifest.permission.ACCESS_FINE_LOCATION -> {
                     if (actionMap.value) {
                         checkPermissions()
                     } else {
-                        Toast.makeText(requireContext(), "GPS permissions weren't provided",
-                            Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(), "GPS permissions weren't provided",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -80,6 +95,7 @@ class JoggingFragment : Fragment(), GpsLocation {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         initLocation()
         checkPermissions()
@@ -104,7 +120,8 @@ class JoggingFragment : Fragment(), GpsLocation {
                 arrayOf(
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.ACCESS_FINE_LOCATION
-                ))
+                )
+            )
         } else {
             setButtonStartListener {
                 locationManager.requestLocationUpdates(
@@ -134,6 +151,7 @@ class JoggingFragment : Fragment(), GpsLocation {
         }
     }
 
+
     private fun setButtonFinishListener() {
         binding.btnFinish.setOnClickListener {
             stopTimer()
@@ -141,6 +159,26 @@ class JoggingFragment : Fragment(), GpsLocation {
                 tvTime.isVisible = true
                 btnFinish.isVisible = false
             }
+            viewModel.insertTrack(Track(destination = distance.toString()))
+
+            @RequiresApi(Build.VERSION_CODES.M)
+            if (!isNetworkAvailable(requireContext())) {
+                val popupWindow = PopupWindow(requireContext())
+                val view = layoutInflater.inflate(R.layout.layout_popup_window,
+                    null)
+                popupWindow.contentView = view
+                popupWindow.showAsDropDown(binding.btnFinish)
+            }
+            viewModel.saveTrack(
+                SAVE_TRACK_QUERY, SaveTrackRequest(
+                    sharedPreferences
+                        .getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
+                    beginsAt = System.currentTimeMillis(),
+                    time = (time / START_TIME_COUNT_NUMBER).toInt(),
+                    distance = distance,
+                    points = listOf(point)
+                )
+            )
         }
     }
 
@@ -173,6 +211,16 @@ class JoggingFragment : Fragment(), GpsLocation {
         locationListener.gpsLocation = this
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun isNetworkAvailable(context: Context) =
+        (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).run {
+            getNetworkCapabilities(activeNetwork)?.run {
+                hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                        || hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                        || hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+            } ?: false
+        }
+
     private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             time = intent.getDoubleExtra(TimerService.TIME_EXTRA, 0.0)
@@ -191,9 +239,10 @@ class JoggingFragment : Fragment(), GpsLocation {
             distance += lastLocation?.distanceTo(location)?.toInt()!!
         }
 
+        point = Point(location.longitude, location.latitude)
+
         location.accuracy = 5F
         lastLocation = location
-        viewModel.insertTrack(Track(destination = distance.toString()))
 
         binding.tvDistance.text = distance.toString()
         binding.tvSpeed.text = location.speed.toString()

@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.database.models.Notification
-import com.senla.fitnessapp.data.Repository
+import com.senla.fitnessapp.data.database.SQLiteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
-    val repository: Repository,
+    val sqLiteRepository: SQLiteRepository,
     private val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
@@ -30,7 +30,7 @@ class NotificationViewModel @Inject constructor(
 
     fun getAllNotifications() {
         compositeDisposable.add(
-            repository.getAllNotifications()
+            sqLiteRepository.getAllNotifications()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _notificationList.value = it }, {}))
@@ -38,7 +38,7 @@ class NotificationViewModel @Inject constructor(
 
     fun deleteNotificationById(notification: Notification) {
         compositeDisposable.add(
-            repository.deleteNotificationById(notification.id)
+            sqLiteRepository.deleteNotificationById(notification.id)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({

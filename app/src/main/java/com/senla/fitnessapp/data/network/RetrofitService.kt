@@ -1,9 +1,7 @@
 package com.senla.fitnessapp.data.network
 
-import com.senla.fitnessapp.data.network.models.LogInRequest
-import com.senla.fitnessapp.data.network.models.LogInResponse
-import com.senla.fitnessapp.data.network.models.RegisterRequest
-import com.senla.fitnessapp.data.network.models.RegisterResponse
+import com.senla.fitnessapp.data.network.models.*
+import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -20,4 +18,10 @@ interface RetrofitService {
     fun registerUser(
         @Query("method") query: String,
         @Body request: RegisterRequest): Single<RegisterResponse>
+
+    @POST("lesson-26.php")
+    fun saveTrack(
+        @Query("method") query: String,
+        @Body request: SaveTrackRequest
+    ): Single<SaveTrackResponse>
 }
