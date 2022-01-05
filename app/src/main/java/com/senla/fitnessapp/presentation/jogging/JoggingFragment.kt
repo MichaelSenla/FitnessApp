@@ -28,7 +28,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
-import com.senla.fitnessapp.data.database.models.Track
+import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import com.senla.fitnessapp.data.network.models.saveTrackRequest.Point
 import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
 import com.senla.fitnessapp.databinding.FragmentJoggingBinding
@@ -66,7 +66,7 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var locationManager: LocationManager? = null
     private var lastLocation: Location? = null
     private var locationListener: LocationListener? = null
-    private var isFinished = false
+    private var isFinished: Boolean? = null
     private val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -145,6 +145,7 @@ class JoggingFragment : Fragment(), GpsLocation {
 
     private fun setButtonStartListener(getGps: () -> Unit) {
         binding.btnStart.setOnClickListener {
+            isFinished = false
             with(binding) {
                 with(flipAnimator) {
                     this?.setTarget(btnStart)
@@ -162,19 +163,35 @@ class JoggingFragment : Fragment(), GpsLocation {
     }
 
 
+
     private fun setButtonFinishListener() {
         binding.btnFinish.setOnClickListener {
             stopTimer()
             isFinished  = true
+            @RequiresApi(Build.VERSION_CODES.M)
+            if (isNetworkAvailable(requireContext())) {
             with(binding) {
-                tvTime.isVisible = true
-                tvDistance.isVisible = true
-                btnFinish.isVisible = false
-                tvDistance.text = StringBuilder(FINISHED_DISTANCE_TEXT)
-                    .append(": \n$distance метров")
+                Handler(Looper.getMainLooper()).postDelayed({
+                    tvTime.isVisible = true
+                    tvDistance.isVisible = true
+                    btnFinish.isVisible = false
+                    tvDistance.text = StringBuilder(FINISHED_DISTANCE_TEXT)
+                        .append(": \n$distance метров")
+                }, DELAY)
+                with(flipAnimator) {
+                    this?.setTarget(btnFinish)
+                    this?.start()
+                }
             }
-            viewModel.insertTrack(Track(destination = distance.toString()))
-
+            viewModel.insertTrack(DataBaseTrack(distance = distance.toString()))
+            viewModel.saveTrack(
+                SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
+                    ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
+                    beginsAt = System.currentTimeMillis(),
+                    time = (time / START_TIME_COUNT_NUMBER).toInt(),
+                    distance = distance,
+                    points = listOf(point),
+                    id = null)) }
             @RequiresApi(Build.VERSION_CODES.M)
             if (!isNetworkAvailable(requireContext())) {
                 val popupWindow = PopupWindow(requireContext())
@@ -184,11 +201,10 @@ class JoggingFragment : Fragment(), GpsLocation {
                 popupWindow.showAtLocation(view, Gravity.CENTER,0,0)
                 val popupWindowLayout = LayoutPopupWindowBinding.bind(view)
                 with(binding) {
-                    btnStart.isVisible = false
-                    tvTime.isVisible = false
-                    btnFinish.isVisible = false
-                    tvDistance.isVisible = false
-                    tvSpeed.isVisible = false
+                        btnStart.isVisible = false
+                        tvTime.isVisible = false
+                        btnFinish.isVisible = false
+                        tvDistance.isVisible = false
                 }
                 popupWindowLayout.tvNoInternetConnectionError.setOnClickListener {
                     popupWindow.dismiss()
@@ -198,7 +214,6 @@ class JoggingFragment : Fragment(), GpsLocation {
                             tvTime.isVisible = true
                             btnFinish.isVisible = true
                             tvDistance.isVisible = true
-                            tvSpeed.isVisible = true
                         }
                     } else {
                         popupWindowLayout.tvNoInternetConnectionError.text =
@@ -212,16 +227,6 @@ class JoggingFragment : Fragment(), GpsLocation {
                         .replace(R.id.fragmentContainer, MainFragment()).commit()
                 }
             }
-            viewModel.saveTrack(
-                SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
-                        ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
-                    beginsAt = System.currentTimeMillis(),
-                    time = (time / START_TIME_COUNT_NUMBER).toInt(),
-                    distance = distance,
-                    points = listOf(point),
-                    id = null
-                )
-            )
         }
     }
 
@@ -229,12 +234,13 @@ class JoggingFragment : Fragment(), GpsLocation {
         requireActivity().onBackPressedDispatcher.addCallback(this, object :
             OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (!isFinished) {
+                if (isFinished == false) {
                     Toast.makeText(requireContext(),
                         ON_BACK_PRESSED_ERROR_TOAST,
                         Toast.LENGTH_SHORT).show()
                 } else {
-                    requireActivity().onBackPressed()
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, MainFragment()).commit()
                 }
             }
         })
@@ -247,8 +253,7 @@ class JoggingFragment : Fragment(), GpsLocation {
 
         flipAnimator = AnimatorInflater.loadAnimator(
             requireContext(),
-            R.animator.front_animator
-        ) as AnimatorSet
+            R.animator.front_animator) as AnimatorSet
     }
 
     private fun startTimer() {
@@ -288,6 +293,7 @@ class JoggingFragment : Fragment(), GpsLocation {
 
     override fun onDestroyView() {
         _binding = null
+        requireContext().unregisterReceiver(updateTime)
 
         super.onDestroyView()
     }
@@ -301,9 +307,6 @@ class JoggingFragment : Fragment(), GpsLocation {
 
         location.accuracy = 5F
         lastLocation = location
-
-        binding.tvDistance.text = distance.toString()
-        binding.tvSpeed.text = location.speed.toString()
     }
 
     override fun onStart() {

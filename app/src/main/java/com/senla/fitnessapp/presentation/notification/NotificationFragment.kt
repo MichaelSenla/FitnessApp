@@ -50,7 +50,6 @@ class NotificationFragment : Fragment(),
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemMain,
             MainFragment(), sharedPreferences!!)
-        Log.i("RV Checking", "$viewModel")
         setAddNotificationButton()
         initRecyclerView()
     }
@@ -88,7 +87,6 @@ class NotificationFragment : Fragment(),
 
     override fun refreshRecyclerView() {
         viewModel.getAllNotifications()
-        Log.e("CHECKING","I'm here!")
     }
 
     override fun onDestroyView() {

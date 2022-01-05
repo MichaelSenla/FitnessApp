@@ -30,7 +30,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnFinish"
-        android:layout_width="100dp"
+        android:layout_width="250dp"
         android:layout_height="80dp"
         android:visibility="gone"
         android:backgroundTint="@color/blue_torea_bay"
@@ -42,15 +42,7 @@
         android:id="@+id/tvDistance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Some"
         android:gravity="center"
         android:padding="@dimen/medium_padding"
         android:textSize="@dimen/medium_text_size"/>
-
-    <TextView
-        android:id="@+id/tvSpeed"
-        android:text="Some"
-        android:textSize="@dimen/large_text_size"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
 </LinearLayout>

@@ -1,6 +1,7 @@
 package com.senla.fitnessapp.data.network
 
 import com.senla.fitnessapp.data.network.models.*
+import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksResponse
 import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.Body
@@ -24,4 +25,10 @@ interface RetrofitService {
         @Query("method") query: String,
         @Body request: SaveTrackRequest
     ): Single<SaveTrackResponse>
+
+    @POST("lesson-26.php")
+    fun getAllTracks(
+        @Query("method") query: String,
+        @Body token: String
+    ): Single<GetAllTracksResponse>
 }

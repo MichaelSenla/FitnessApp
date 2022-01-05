@@ -41,6 +41,7 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 "проверьте введённые данные."
         private const val SERVER_SUCCESS_RESPONSE = "ok"
         private const val SERVER_ERROR_RESPONSE = "error"
+        const val FIRST_APP_USE_EXTRA_KEY = "First app use"
     }
 
     private var _binding: FragmentEntryBinding? = null
@@ -80,11 +81,15 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private fun setLogInObserver() {
         logInResponseObserver = Observer {
             if (it?.status == SERVER_SUCCESS_RESPONSE) {
-                Log.e("Testing", it.status)
                 sharedPreferences?.edit()?.putString(SHARED_PREFERENCES_TOKEN_KEY,
                     it.token)?.apply()
 
-                navigateToFragment(MainFragment())
+                val bundle = Bundle()
+                bundle.putBoolean(FIRST_APP_USE_EXTRA_KEY, true)
+                val mainFragment = MainFragment()
+                mainFragment.arguments = bundle
+
+                navigateToFragment(mainFragment)
             } else if (it?.status == SERVER_ERROR_RESPONSE){
                 Toast.makeText(requireContext(), LOG_IN_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
@@ -97,13 +102,17 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 sharedPreferences?.edit()?.putString(SHARED_PREFERENCES_TOKEN_KEY,
                     it.token)?.apply()
 
-                navigateToFragment(MainFragment())
+                val bundle = Bundle()
+                bundle.putBoolean(FIRST_APP_USE_EXTRA_KEY, true)
+                val mainFragment = MainFragment()
+                mainFragment.arguments = bundle
+
+                navigateToFragment(mainFragment)
             } else if (it.status == SERVER_ERROR_RESPONSE) {
                 Toast.makeText(requireContext(), REGISTER_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
         }
     }
-
 
     private fun navigateToFragment(fragment: Fragment) {
         requireActivity().supportFragmentManager.beginTransaction()

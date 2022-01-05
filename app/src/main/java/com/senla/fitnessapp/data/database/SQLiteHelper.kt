@@ -6,7 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.senla.fitnessapp.data.database.models.Notification
-import com.senla.fitnessapp.data.database.models.Track
+import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import io.reactivex.rxjava3.core.Single
 import java.lang.Exception
 
@@ -21,14 +21,14 @@ class SQLiteHelper(context: Context):
         private const val ID = "id"
         private const val TITLE = "title"
         private const val TIME = "time"
-        private const val DESTINATION = "destination"
+        private const val DISTANCE = "DISTANCE"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(("CREATE TABLE " + TABLE_NOTIFICATION + "(" + ID
                 + " INTEGER PRIMARY KEY," + TITLE + " TEXT," + TIME + " TEXT" + ")"))
         db?.execSQL(("CREATE TABLE " + TABLE_TRACK + "(" + ID
-                + " INTEGER PRIMARY KEY," + DESTINATION + " TEXT" + ")"))
+                + " INTEGER PRIMARY KEY," + DISTANCE + " TEXT" + ")"))
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
@@ -133,12 +133,12 @@ class SQLiteHelper(context: Context):
         return Single.just(success)
     }
 
-    fun insertTrack(track: Track): Single<Long> {
+    fun insertTrack(dataBaseTrack: DataBaseTrack): Single<Long> {
         val database = this.writableDatabase
 
         val contentValues = ContentValues()
-        contentValues.put(ID, track.id)
-        contentValues.put(DESTINATION, track.destination)
+        contentValues.put(ID, dataBaseTrack.id)
+        contentValues.put(DISTANCE, dataBaseTrack.distance)
 
         val success = database.insert(TABLE_TRACK, null, contentValues)
         database.close()
@@ -146,15 +146,14 @@ class SQLiteHelper(context: Context):
         return Single.just(success)
     }
 
-    fun getTrackById(id: Int): Single<Track>? {
+    fun getTrackById(id: Int): Single<DataBaseTrack>? {
         val database = this.readableDatabase
         val selectQuery = "SELECT * FROM $TABLE_TRACK WHERE id = $id"
 
         database.rawQuery(selectQuery, null).use {
             if (it.moveToFirst()) {
-                val track = Track()
-                track.id = it.getInt(it.getColumnIndexOrThrow(ID))
-                track.destination = it.getString(it.getColumnIndexOrThrow(DESTINATION))
+                val track = DataBaseTrack()
+                track.distance = it.getString(it.getColumnIndexOrThrow(DISTANCE))
 
                 return Single.just(track)
             }
@@ -162,8 +161,8 @@ class SQLiteHelper(context: Context):
         return null
     }
 
-    fun getAllTracks(): Single<ArrayList<Track>> {
-        val trackList: ArrayList<Track> = ArrayList()
+    fun getAllTracks(): Single<ArrayList<DataBaseTrack>> {
+        val dataBaseTrackList: ArrayList<DataBaseTrack> = ArrayList()
         val selectQuery = "SELECT * FROM $TABLE_TRACK"
         val database = this.readableDatabase
 
@@ -175,7 +174,7 @@ class SQLiteHelper(context: Context):
             database.execSQL(selectQuery)
             e.printStackTrace()
 
-            return Single.just(trackList)
+            return Single.just(dataBaseTrackList)
         }
 
         var id: Int
@@ -184,15 +183,15 @@ class SQLiteHelper(context: Context):
         if(cursor.moveToFirst()) {
             do {
                 id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
-                destination = cursor.getString(cursor.getColumnIndexOrThrow(DESTINATION))
+                destination = cursor.getString(cursor.getColumnIndexOrThrow(DISTANCE))
 
-                val track = Track(id = id, destination = destination)
-                trackList.add(track)
+                val track = DataBaseTrack(id = id, distance = destination)
+                dataBaseTrackList.add(track)
             } while (cursor.moveToNext())
         }
 
         cursor.close()
 
-        return Single.just(trackList)
+        return Single.just(dataBaseTrackList)
     }
 }

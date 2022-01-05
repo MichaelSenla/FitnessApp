@@ -6,29 +6,29 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.senla.fitnessapp.databinding.TrackListItemBinding
-import com.senla.fitnessapp.presentation.main.models.Track
+import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 
-class TrackAdapter : ListAdapter<Track, TrackAdapter.ItemHolder>(ItemComparator()) {
+class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(ItemComparator()) {
 
     class ItemHolder(private val binding: TrackListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(track: Track) {
+        fun bind(recyclerViewTrack: RecyclerViewTrack) {
             with(binding) {
-                tvDistance.text = track.distance
-                tvStartTime.text = track.startTime
-                tvJoggingTime.text = track.joggingTime.toString()
+                tvDistance.text = recyclerViewTrack.distance
+                tvStartTime.text = recyclerViewTrack.startTime
+                tvJoggingTime.text = recyclerViewTrack.joggingTime.toString()
             }
         }
     }
 
-    class ItemComparator: DiffUtil.ItemCallback<Track>() {
+    class ItemComparator: DiffUtil.ItemCallback<RecyclerViewTrack>() {
 
-        override fun areItemsTheSame(oldItem: Track, newItem: Track): Boolean {
+        override fun areItemsTheSame(oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
             return oldItem == newItem
         }
 
-        override fun areContentsTheSame(oldItem: Track, newItem: Track): Boolean {
+        override fun areContentsTheSame(oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
             return oldItem == newItem
         }
     }

@@ -62,10 +62,10 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
 
-    //Gson
+    // Gson
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
 
-    //Dagger - Hilt
+    // Dagger - Hilt
     implementation "com.google.dagger:hilt-android:2.35.1"
     kapt "com.google.dagger:hilt-android-compiler:2.35.1"
 
@@ -74,4 +74,7 @@ dependencies {
 
     // Activity KTX for viewModels()
     implementation "androidx.activity:activity-ktx:1.4.0"
+
+    // Swipe refresh layout
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }

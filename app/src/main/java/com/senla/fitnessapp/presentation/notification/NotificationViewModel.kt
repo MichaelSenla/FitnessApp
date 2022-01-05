@@ -30,14 +30,12 @@ class NotificationViewModel @Inject constructor(
         get() = _notificationList
 
     fun getAllNotifications() {
-        Log.i("RV Checking", "Before init: ${_notificationList.value}")
         compositeDisposable.add(
             sqLiteRepository.getAllNotifications()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _notificationList.value = it }, {}) ?: Disposable.empty()
         )
-        Log.i("RV Checking", "After init: ${_notificationList.value}")
     }
 
     fun deleteNotificationById(notification: Notification) {

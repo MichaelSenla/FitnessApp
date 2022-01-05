@@ -1,11 +1,10 @@
 package com.senla.fitnessapp.presentation.jogging
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.database.SQLiteRepository
-import com.senla.fitnessapp.data.database.models.Track
+import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import com.senla.fitnessapp.data.network.NetworkRepository
 import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
 import com.senla.fitnessapp.data.network.models.SaveTrackResponse
@@ -23,8 +22,8 @@ class JoggingViewModel @Inject constructor(
     val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
-    private val _track = MutableLiveData<Track>()
-    val track: LiveData<Track>
+    private val _track = MutableLiveData<DataBaseTrack>()
+    val dataBaseTrack: LiveData<DataBaseTrack>
         get() = _track
 
     private val _saveTrackResponse = MutableLiveData<SaveTrackResponse>()
@@ -45,9 +44,9 @@ class JoggingViewModel @Inject constructor(
         )
     }
 
-    fun insertTrack(track: Track) {
+    fun insertTrack(dataBaseTrack: DataBaseTrack) {
         compositeDisposable.add(
-            sqLiteRepository.insertTrack(track).subscribeOn(Schedulers.io())
+            sqLiteRepository.insertTrack(dataBaseTrack).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ if (it > -1) _trackWasInserted.value = true }, {})
         )
