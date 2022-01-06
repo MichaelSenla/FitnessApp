@@ -34,8 +34,8 @@ import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackReques
 import com.senla.fitnessapp.databinding.FragmentJoggingBinding
 import com.senla.fitnessapp.databinding.LayoutPopupWindowBinding
 import com.senla.fitnessapp.presentation.jogging.service.TimerService
-import com.senla.fitnessapp.presentation.location.GpsLocation
-import com.senla.fitnessapp.presentation.location.LocationListener
+import com.senla.fitnessapp.presentation.jogging.location.GpsLocation
+import com.senla.fitnessapp.presentation.jogging.location.LocationListener
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

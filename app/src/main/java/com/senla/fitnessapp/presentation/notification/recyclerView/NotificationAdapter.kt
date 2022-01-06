@@ -36,7 +36,8 @@ class NotificationAdapter :
         }
     }
 
-    class ItemComparator: DiffUtil.ItemCallback<Notification>() {
+    class ItemComparator : DiffUtil.ItemCallback<Notification>() {
+
         override fun areItemsTheSame(oldItem: Notification, newItem: Notification): Boolean {
             return oldItem == newItem
         }
@@ -44,7 +45,6 @@ class NotificationAdapter :
         override fun areContentsTheSame(oldItem: Notification, newItem: Notification): Boolean {
             return oldItem == newItem
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {

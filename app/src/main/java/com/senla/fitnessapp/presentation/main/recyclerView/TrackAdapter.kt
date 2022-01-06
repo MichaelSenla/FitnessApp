@@ -22,21 +22,24 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
         }
     }
 
-    class ItemComparator: DiffUtil.ItemCallback<RecyclerViewTrack>() {
+    class ItemComparator : DiffUtil.ItemCallback<RecyclerViewTrack>() {
 
-        override fun areItemsTheSame(oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
+        override fun areItemsTheSame(
+            oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
             return oldItem == newItem
         }
 
-        override fun areContentsTheSame(oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
+        override fun areContentsTheSame(
+            oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
             return oldItem == newItem
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
 
-        return ItemHolder(TrackListItemBinding.inflate(LayoutInflater.from(parent.context),
-            parent, false))
+        return ItemHolder(
+            TrackListItemBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false))
     }
 
     override fun onBindViewHolder(holder: ItemHolder, position: Int) {

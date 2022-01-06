@@ -11,7 +11,8 @@ class SideNavigation {
 
     companion object {
 
-        fun setNavigationMenuButtons(binding: NavigationView, navigation: (Fragment) -> Unit,
+        fun setNavigationMenuButtons(
+            binding: NavigationView, navigation: (Fragment) -> Unit,
             menuResource: Int, fragment: Fragment, sharedPreferences: SharedPreferences) {
             binding.setNavigationItemSelectedListener {
                 when (it.itemId) {
@@ -23,8 +24,9 @@ class SideNavigation {
             }
         }
 
-        fun setMenuExitButton(navigation: (Fragment) -> Unit, fragment: Fragment,
-                              sharedPreferences: SharedPreferences) {
+        fun setMenuExitButton(
+            navigation: (Fragment) -> Unit, fragment: Fragment,
+            sharedPreferences: SharedPreferences) {
             navigation(fragment)
 
             val editor = sharedPreferences.edit()

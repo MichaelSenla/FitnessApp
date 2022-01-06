@@ -1,12 +1,14 @@
 package com.senla.fitnessapp.presentation.main
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.database.SQLiteHelper
 import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import com.senla.fitnessapp.data.network.NetworkRepository
-import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksResponse
+import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksRequest
+import com.senla.fitnessapp.data.network.models.getAllTracks.getAllTracksResponse.GetAllTracksResponse
 import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -17,9 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     val networkRepository: NetworkRepository,
-    val sqLiteHelper: SQLiteHelper,
-    val compositeDisposable: CompositeDisposable
-) : ViewModel() {
+    val sqLiteHelper: SQLiteHelper) : ViewModel() {
+
+    private var compositeDisposable: CompositeDisposable? = CompositeDisposable()
 
     private val _trackListFromDataBase = MutableLiveData<ArrayList<DataBaseTrack>>()
     val dataBaseTrackListFromDataBase: LiveData<ArrayList<DataBaseTrack>>
@@ -29,41 +31,40 @@ class MainViewModel @Inject constructor(
     val recyclerViewTrackList: LiveData<ArrayList<RecyclerViewTrack>>
         get() = _recyclerViewTrackList
 
-    fun getAllTracksFromServer(query: String, token: String) {
-        compositeDisposable.add(
-            networkRepository.getAllTracks(query, token)
+    fun getAllTracksFromServer(query: String, request: GetAllTracksRequest) {
+        compositeDisposable?.add(
+            networkRepository.getAllTracks(query, request)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _recyclerViewTrackList.value = mapToRecyclerViewTrackList(it) }, {})
-        )
+                .subscribe({ Log.e("TEST", "${it}")
+                    _recyclerViewTrackList.value = mapToRecyclerViewTrackList(it)
+                    Log.e("TEST", "${_recyclerViewTrackList.value}")}, {}))
     }
 
     fun getAllTracksFromDataBase() {
-        compositeDisposable.add(
+        compositeDisposable?.add(
             sqLiteHelper.getAllTracks()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _trackListFromDataBase.value = it }, {})
-        )
+                .subscribe({ _trackListFromDataBase.value = it }, {}))
     }
 
     private fun mapToRecyclerViewTrackList(response: GetAllTracksResponse):
             ArrayList<RecyclerViewTrack> {
         val trackList = arrayListOf<RecyclerViewTrack>()
-        response.networkTracks.forEachIndexed { index, value ->
-            trackList.add(
-                RecyclerViewTrack(
-                    response.networkTracks[index].beginsAt.toString(),
-                    response.networkTracks[index].distance.toString(),
-                    response.networkTracks[index].time)
-            )
+        response.tracks.forEachIndexed { index, _ ->
+            trackList.add(RecyclerViewTrack(
+                    response.tracks[index].beginsAt.toString(),
+                    response.tracks[index].distance.toString(),
+                    response.tracks[index].time))
         }
 
         return trackList
     }
 
     override fun onCleared() {
-        compositeDisposable.clear()
+        compositeDisposable?.clear()
+        compositeDisposable = null
 
         super.onCleared()
     }

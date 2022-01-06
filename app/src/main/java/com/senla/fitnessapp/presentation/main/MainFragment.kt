@@ -2,6 +2,7 @@ package com.senla.fitnessapp.presentation.main
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
 import com.senla.fitnessapp.data.database.models.DataBaseTrack
+import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksRequest
 import com.senla.fitnessapp.databinding.FragmentMainBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment.Companion.FIRST_APP_USE_EXTRA_KEY
 import com.senla.fitnessapp.presentation.jogging.JoggingFragment
@@ -53,15 +55,16 @@ class MainFragment : Fragment() {
         setMainFragmentListeners()
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemNotification,
-            NotificationFragment(), sharedPreferences!!
-        )
+            NotificationFragment(), sharedPreferences!!)
+
         initRecyclerView()
+
         if (arguments?.getBoolean(FIRST_APP_USE_EXTRA_KEY) == true) {
             binding.progressBar.isVisible = true
             viewModel.getAllTracksFromServer(
-                GET_ALL_TRACKS_FROM_SERVER_QUERY,
-                sharedPreferences!!.getString(
-                    SHARED_PREFERENCES_TOKEN_KEY, "") ?: "")
+                GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
+                    sharedPreferences!!.getString(
+                        SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
         }
     }
 
@@ -69,7 +72,7 @@ class MainFragment : Fragment() {
         adapter = TrackAdapter()
         with(binding.recyclerView) {
             layoutManager = LinearLayoutManager(requireContext())
-            binding.recyclerView.adapter = adapter
+            adapter = adapter
         }
     }
 
@@ -100,6 +103,7 @@ class MainFragment : Fragment() {
     override fun onStart() {
         networkTrackListObserver = Observer {
             adapter?.submitList(it)
+            Log.e("NETWORK_TRACKS", "$it")
             binding.progressBar.isVisible = false
         }
         viewModel.recyclerViewTrackList.observe(this, networkTrackListObserver!!)

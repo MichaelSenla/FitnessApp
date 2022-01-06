@@ -54,7 +54,7 @@ class EntryViewModel @Inject constructor(
             networkRepository.userLogIn(query, logInRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({_logInResponse.value = it}, {}))
+                .subscribe({ _logInResponse.value = it }, {}))
     }
 
     override fun onCleared() {
