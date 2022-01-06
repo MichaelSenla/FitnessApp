@@ -24,11 +24,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class TrackFragment : Fragment(), AddMapsMarkers {
 
+    companion object {
+        var mapFragment: SupportMapFragment? = null
+        var googleMap: GoogleMap? = null
+    }
+
     private var _binding: FragmentTrackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: TrackViewModel by viewModels()
-    private var mapFragment: SupportMapFragment? = null
-    private var googleMap: GoogleMap? = null
 
     @set:Inject
     var sharedPreferences: SharedPreferences? = null

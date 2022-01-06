@@ -50,6 +50,7 @@ class JoggingFragment : Fragment(), GpsLocation {
         private const val ON_BACK_PRESSED_ERROR_TOAST = "Для начала нажмите на кнопку \"Финиш\"," +
                 " пожалуйста."
         private const val FINISHED_DISTANCE_TEXT = "Пройденная дистанция"
+        var lastLocation: Location? = null
     }
 
     private var _binding: FragmentJoggingBinding? = null
@@ -64,7 +65,6 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var serviceIntent: Intent? = null
     private var flipAnimator: AnimatorSet? = null
     private var locationManager: LocationManager? = null
-    private var lastLocation: Location? = null
     private var locationListener: LocationListener? = null
     private var isFinished: Boolean? = null
     private val requestPermissions = registerForActivityResult(
