@@ -35,7 +35,7 @@ class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
-    private var myAdapter: TrackAdapter? = null
+    private var trackAdapter: TrackAdapter? = null
     private var dataBaseTrackListObserver: Observer<ArrayList<DataBaseTrack>>? = null
     private var networkTrackListObserver: Observer<ArrayList<RecyclerViewTrack>>? = null
 
@@ -65,14 +65,16 @@ class MainFragment : Fragment() {
                 GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
                     sharedPreferences!!.getString(
                         SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
+        } else {
+            viewModel.getAllTracksFromDataBase()
         }
     }
 
     private fun initRecyclerView() {
-        myAdapter = TrackAdapter()
+        trackAdapter = TrackAdapter()
         with(binding.recyclerView) {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = myAdapter
+            adapter = trackAdapter
         }
     }
 
@@ -104,9 +106,12 @@ class MainFragment : Fragment() {
         super.onStart()
 
         networkTrackListObserver = Observer {
-            myAdapter!!.submitList(it)
-            Log.e("NETWORK_TRACKS", "$it")
+            trackAdapter?.submitList(it)
             binding.progressBar.isVisible = false
+        }
+
+        dataBaseTrackListObserver = Observer {
+//            trackAdapter?.submitList(it)
         }
         viewModel.recyclerViewTrackList.observe(this, networkTrackListObserver!!)
     }

@@ -22,13 +22,16 @@ class SQLiteHelper(context: Context):
         private const val TITLE = "title"
         private const val TIME = "time"
         private const val DISTANCE = "DISTANCE"
+        private const val START_TIME = "START_TIME"
+        private const val JOGGING_TIME = "JOGGING_TIME"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(("CREATE TABLE " + TABLE_NOTIFICATION + "(" + ID
                 + " INTEGER PRIMARY KEY," + TITLE + " TEXT," + TIME + " TEXT" + ")"))
         db?.execSQL(("CREATE TABLE " + TABLE_TRACK + "(" + ID
-                + " INTEGER PRIMARY KEY," + DISTANCE + " TEXT" + ")"))
+                + " INTEGER PRIMARY KEY," + START_TIME + " TEXT," + DISTANCE + " TEXT," +
+                JOGGING_TIME + " TEXT" + ")"))
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
@@ -138,7 +141,9 @@ class SQLiteHelper(context: Context):
 
         val contentValues = ContentValues()
         contentValues.put(ID, dataBaseTrack.id)
+        contentValues.put(START_TIME, dataBaseTrack.startTime)
         contentValues.put(DISTANCE, dataBaseTrack.distance)
+        contentValues.put(JOGGING_TIME, dataBaseTrack.joggingTime)
 
         val success = database.insert(TABLE_TRACK, null, contentValues)
         database.close()
@@ -153,7 +158,9 @@ class SQLiteHelper(context: Context):
         database.rawQuery(selectQuery, null).use {
             if (it.moveToFirst()) {
                 val track = DataBaseTrack()
+                track.startTime = it.getString(it.getColumnIndexOrThrow(START_TIME))
                 track.distance = it.getString(it.getColumnIndexOrThrow(DISTANCE))
+                track.joggingTime = it.getString(it.getColumnIndexOrThrow(JOGGING_TIME))
 
                 return Single.just(track)
             }
@@ -178,14 +185,20 @@ class SQLiteHelper(context: Context):
         }
 
         var id: Int
-        var destination: String
+        var startTime: String
+        var distance: String
+        var joggingTime: String
 
         if(cursor.moveToFirst()) {
             do {
                 id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
-                destination = cursor.getString(cursor.getColumnIndexOrThrow(DISTANCE))
+                startTime = cursor.getString(cursor.getColumnIndexOrThrow(START_TIME))
+                distance = cursor.getString(cursor.getColumnIndexOrThrow(DISTANCE))
+                joggingTime = cursor.getString(cursor.getColumnIndexOrThrow(JOGGING_TIME))
 
-                val track = DataBaseTrack(id = id, distance = destination)
+
+                val track = DataBaseTrack(id = id, startTime = startTime, distance = distance,
+                    joggingTime = joggingTime)
                 dataBaseTrackList.add(track)
             } while (cursor.moveToNext())
         }

@@ -33,4 +33,6 @@
     <string name="layout_popup_window_restart_app_text">Пожалуйста, проверьте интернет соединение и
         перезапустите приложение.</string>
     <string name="layout_popup_window_main_fragment_text">Главный экран</string>
+
+    <string name="layout_track_list_item_jogging_time_text">Время пробежки: %d:%d:%d</string>
 </resources>

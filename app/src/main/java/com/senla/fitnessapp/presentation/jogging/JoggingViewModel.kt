@@ -22,6 +22,14 @@ class JoggingViewModel @Inject constructor(
     val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
+    companion object {
+        private const val ONE_MINUTE_NUMBER = 600
+        private const val MINUTES_SCALE_NUMBER = 60
+        private const val ONE_SECOND_NUMBER = 10
+        private const val SECONDS_SCALE_NUMBER = 60
+        private const val ONE_HUNDRED_MILLISECONDS_SCALE_NUMBER = 10
+    }
+
     private val _track = MutableLiveData<DataBaseTrack>()
     val dataBaseTrack: LiveData<DataBaseTrack>
         get() = _track
@@ -29,11 +37,6 @@ class JoggingViewModel @Inject constructor(
     private val _saveTrackResponse = MutableLiveData<SaveTrackResponse>()
     private val saveTrackResponse: LiveData<SaveTrackResponse>
         get() = _saveTrackResponse
-
-    private val _trackWasInserted = MutableLiveData<Boolean>()
-    private val trackWasInserted: LiveData<Boolean>
-        get() = _trackWasInserted
-
 
     fun saveTrack(query: String, saveTrackRequest: SaveTrackRequest) {
         compositeDisposable.add(
@@ -48,7 +51,7 @@ class JoggingViewModel @Inject constructor(
         compositeDisposable.add(
             sqLiteRepository.insertTrack(dataBaseTrack).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ if (it > -1) _trackWasInserted.value = true }, {})
+                .subscribe({}, {})
         )
     }
 
@@ -63,9 +66,9 @@ class JoggingViewModel @Inject constructor(
     fun getTimeStringFromDouble(time: Double): String {
         val resultInt = time.roundToInt()
 
-        val minutes = resultInt % 86400 % 36000 / 600 //100 = 10
-        val seconds = resultInt % 86400 % 3600 % 600 / 10
-        val milliseconds = resultInt % 86400 % 3600 % 60 % 10
+        val minutes = resultInt / ONE_MINUTE_NUMBER % MINUTES_SCALE_NUMBER
+        val seconds = resultInt / ONE_SECOND_NUMBER % SECONDS_SCALE_NUMBER
+        val milliseconds = resultInt % ONE_HUNDRED_MILLISECONDS_SCALE_NUMBER
 
         return makeTimeString(minutes, seconds, milliseconds)
     }

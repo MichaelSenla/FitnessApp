@@ -27,7 +27,8 @@ class SQLiteRepository @Inject constructor(private val sqLiteHelper: SQLiteHelpe
         return sqLiteHelper.updateNotification(notification)
     }
 
-    fun insertTrack(dataBaseTrack: DataBaseTrack): Single<Long> = sqLiteHelper.insertTrack(dataBaseTrack)
+    fun insertTrack(dataBaseTrack: DataBaseTrack): Single<Long> =
+        sqLiteHelper.insertTrack(dataBaseTrack)
 
     fun getTrackById(id: Int): Single<DataBaseTrack>? = sqLiteHelper.getTrackById(id)
 

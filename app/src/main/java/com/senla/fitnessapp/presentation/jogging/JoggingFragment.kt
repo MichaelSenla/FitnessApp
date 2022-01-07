@@ -38,6 +38,8 @@ import com.senla.fitnessapp.presentation.jogging.location.GpsLocation
 import com.senla.fitnessapp.presentation.jogging.location.LocationListener
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,7 +48,7 @@ class JoggingFragment : Fragment(), GpsLocation {
     companion object {
         private const val DELAY = 600L
         private const val SAVE_TRACK_QUERY = "save"
-        private const val START_TIME_COUNT_NUMBER = 10
+        private const val MILLISECONDS_DELAY_OF_EMITTING_NUMBER = 100
         private const val ON_BACK_PRESSED_ERROR_TOAST = "Для начала нажмите на кнопку \"Финиш\"," +
                 " пожалуйста."
         private const val FINISHED_DISTANCE_TEXT = "Пройденная дистанция"
@@ -67,6 +69,7 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
     private var isFinished: Boolean? = null
+    private var tracksStartTime: Long? = null
     private val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -146,6 +149,7 @@ class JoggingFragment : Fragment(), GpsLocation {
     private fun setButtonStartListener(getGps: () -> Unit) {
         binding.btnStart.setOnClickListener {
             isFinished = false
+            tracksStartTime = System.currentTimeMillis()
             with(binding) {
                 with(flipAnimator) {
                     this?.setTarget(btnStart)
@@ -183,12 +187,16 @@ class JoggingFragment : Fragment(), GpsLocation {
                     this?.start()
                 }
             }
-            viewModel.insertTrack(DataBaseTrack(distance = distance.toString()))
+            val simpleDateFormat = SimpleDateFormat("mm:ss:SS", Locale.getDefault())
+            val currentTime = simpleDateFormat.format(Date())
+            viewModel.insertTrack(DataBaseTrack(startTime = tracksStartTime.toString(),
+                distance = distance.toString(),
+                joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toString()))
             viewModel.saveTrack(
                 SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
                     ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
-                    beginsAt = System.currentTimeMillis(),
-                    time = (time / START_TIME_COUNT_NUMBER).toInt(),
+                    beginsAt = tracksStartTime!!,
+                    time = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                     distance = distance,
                     points = listOf(point),
                     id = null)) }
