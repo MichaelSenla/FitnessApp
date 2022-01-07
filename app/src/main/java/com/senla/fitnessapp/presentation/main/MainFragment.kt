@@ -35,7 +35,7 @@ class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
-    private var adapter: TrackAdapter? = null
+    private var myAdapter: TrackAdapter? = null
     private var dataBaseTrackListObserver: Observer<ArrayList<DataBaseTrack>>? = null
     private var networkTrackListObserver: Observer<ArrayList<RecyclerViewTrack>>? = null
 
@@ -69,10 +69,10 @@ class MainFragment : Fragment() {
     }
 
     private fun initRecyclerView() {
-        adapter = TrackAdapter()
+        myAdapter = TrackAdapter()
         with(binding.recyclerView) {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = adapter
+            adapter = myAdapter
         }
     }
 
@@ -101,13 +101,13 @@ class MainFragment : Fragment() {
     }
 
     override fun onStart() {
+        super.onStart()
+
         networkTrackListObserver = Observer {
-            adapter?.submitList(it)
+            myAdapter!!.submitList(it)
             Log.e("NETWORK_TRACKS", "$it")
             binding.progressBar.isVisible = false
         }
         viewModel.recyclerViewTrackList.observe(this, networkTrackListObserver!!)
-
-        super.onStart()
     }
 }
