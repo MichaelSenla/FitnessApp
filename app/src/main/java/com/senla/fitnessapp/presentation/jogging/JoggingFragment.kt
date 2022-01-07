@@ -187,11 +187,9 @@ class JoggingFragment : Fragment(), GpsLocation {
                     this?.start()
                 }
             }
-            val simpleDateFormat = SimpleDateFormat("mm:ss:SS", Locale.getDefault())
-            val currentTime = simpleDateFormat.format(Date())
-            viewModel.insertTrack(DataBaseTrack(startTime = tracksStartTime.toString(),
+            viewModel.insertTrack(DataBaseTrack(startTime = tracksStartTime!!,
                 distance = distance.toString(),
-                joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toString()))
+                joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong()))
             viewModel.saveTrack(
                 SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
                     ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",

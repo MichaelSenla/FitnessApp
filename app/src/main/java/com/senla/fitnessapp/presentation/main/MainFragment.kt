@@ -13,7 +13,6 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
-import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksRequest
 import com.senla.fitnessapp.databinding.FragmentMainBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment.Companion.FIRST_APP_USE_EXTRA_KEY
@@ -36,8 +35,8 @@ class MainFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
     private var trackAdapter: TrackAdapter? = null
-    private var dataBaseTrackListObserver: Observer<ArrayList<DataBaseTrack>>? = null
-    private var networkTrackListObserver: Observer<ArrayList<RecyclerViewTrack>>? = null
+    private var dataBaseTrackListObserver: Observer<List<RecyclerViewTrack>>? = null
+    private var networkTrackListObserver: Observer<List<RecyclerViewTrack>>? = null
 
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
@@ -55,7 +54,8 @@ class MainFragment : Fragment() {
         setMainFragmentListeners()
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemNotification,
-            NotificationFragment(), sharedPreferences!!)
+            NotificationFragment(), sharedPreferences!!
+        )
 
         initRecyclerView()
 
@@ -67,6 +67,10 @@ class MainFragment : Fragment() {
                         SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
         } else {
             viewModel.getAllTracksFromDataBase()
+//            viewModel.getAllTracksFromServer(
+//                GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
+//                    sharedPreferences!!.getString(
+//                        SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
         }
     }
 
@@ -105,14 +109,28 @@ class MainFragment : Fragment() {
     override fun onStart() {
         super.onStart()
 
-        networkTrackListObserver = Observer {
-            trackAdapter?.submitList(it)
+        networkTrackListObserver = Observer { recyclerViewTrackList ->
+            if (arguments?.getBoolean(FIRST_APP_USE_EXTRA_KEY) == true) {
+                viewModel.saveServerTracksToDataBase()
+                Log.e("CHECKING", "I'm here!")
+            }
+            trackAdapter?.submitList(recyclerViewTrackList.sortedByDescending { it.startTime })
+            binding.progressBar.isVisible = false
+        }
+        dataBaseTrackListObserver = Observer { recyclerViewTrackList ->
+            Log.e("CHECKING", recyclerViewTrackList.toString())
+            trackAdapter?.submitList(recyclerViewTrackList.sortedByDescending { it.startTime })
             binding.progressBar.isVisible = false
         }
 
-        dataBaseTrackListObserver = Observer {
-//            trackAdapter?.submitList(it)
-        }
         viewModel.recyclerViewTrackList.observe(this, networkTrackListObserver!!)
+        viewModel.dataBaseTrackList.observe(this, dataBaseTrackListObserver!!)
+    }
+
+    override fun onStop() {
+        viewModel.recyclerViewTrackList.removeObserver(networkTrackListObserver!!)
+        viewModel.dataBaseTrackList.removeObserver(dataBaseTrackListObserver!!)
+
+        super.onStop()
     }
 }

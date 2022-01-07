@@ -4,9 +4,9 @@ import java.util.*
 
 data class DataBaseTrack(
     val id: Int = generateId(),
-    var startTime: String = "",
+    var startTime: Long = 0,
     var distance: String = "",
-    var joggingTime: String = ""
+    var joggingTime: Long = 0
 ) {
     companion object {
         private const val ID_BOUND = 100000

@@ -1,6 +1,7 @@
 package com.senla.fitnessapp.presentation.main
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,9 +11,11 @@ import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import com.senla.fitnessapp.data.network.NetworkRepository
 import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksRequest
 import com.senla.fitnessapp.data.network.models.getAllTracks.getAllTracksResponse.GetAllTracksResponse
+import com.senla.fitnessapp.data.network.models.getAllTracks.getAllTracksResponse.NetworkTrack
 import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.text.SimpleDateFormat
@@ -37,16 +40,18 @@ class MainViewModel @Inject constructor(
     }
 
     private var compositeDisposable: CompositeDisposable? = CompositeDisposable()
+    private var networkTracksList = listOf<NetworkTrack>()
 
-    private val _trackListFromDataBase = MutableLiveData<ArrayList<DataBaseTrack>>()
-    val dataBaseTrackListFromDataBase: LiveData<ArrayList<DataBaseTrack>>
+    private val _trackListFromDataBase = MutableLiveData<List<RecyclerViewTrack>>()
+    val dataBaseTrackList: LiveData<List<RecyclerViewTrack>>
         get() = _trackListFromDataBase
 
-    private val _recyclerViewTrackList = MutableLiveData<ArrayList<RecyclerViewTrack>>()
-    val recyclerViewTrackList: LiveData<ArrayList<RecyclerViewTrack>>
+    private val _recyclerViewTrackList = MutableLiveData<List<RecyclerViewTrack>>()
+    val recyclerViewTrackList: LiveData<List<RecyclerViewTrack>>
         get() = _recyclerViewTrackList
 
     fun insertTrack(dataBaseTrack: DataBaseTrack) {
+        Log.e("CHECKING", "I'm here2!")
         compositeDisposable?.add(
             sqLiteRepository.insertTrack(dataBaseTrack)
                 .subscribeOn(Schedulers.io())
@@ -62,8 +67,8 @@ class MainViewModel @Inject constructor(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ getAllTracksResponse ->
                     _recyclerViewTrackList.value = mapToRecyclerViewTrackList(getAllTracksResponse)
-                    mapToDataBaseTrackList(mapToRecyclerViewTrackList(getAllTracksResponse))
-                        .forEach { insertTrack(it) }}, {}))
+                    networkTracksList = getAllTracksResponse.tracks
+                }, {}))
     }
 
     fun getAllTracksFromDataBase() {
@@ -71,13 +76,21 @@ class MainViewModel @Inject constructor(
             sqLiteRepository.getAllTracks()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _trackListFromDataBase.value = it }, {})
-        )
+                .subscribe({ _trackListFromDataBase.value = mapToRecyclerViewTrackList(it) }, {}))
+    }
+
+    fun saveServerTracksToDataBase() {
+        compositeDisposable?.add(
+            Single.just(mapToDataBaseTrackList(networkTracksList).forEach { insertTrack(it);
+                Log.e("CHECKING", "I'm here1!")})
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe())
     }
 
     private fun mapToRecyclerViewTrackList(response: GetAllTracksResponse):
-            ArrayList<RecyclerViewTrack> {
-        val trackList = arrayListOf<RecyclerViewTrack>()
+            List<RecyclerViewTrack> {
+        val trackList = mutableListOf<RecyclerViewTrack>()
         response.tracks.forEachIndexed { index, _ ->
             val simpleDateFormat = SimpleDateFormat(TIME_FORMAT, Locale.getDefault())
             val date = Date(response.tracks[index].beginsAt)
@@ -85,10 +98,13 @@ class MainViewModel @Inject constructor(
             val joggingTimeHundredOfMilliseconds =
                 response.tracks[index].time / CONVERT_TO_HUNDRED_OF_MILLISECONDS_NUMBER %
                         CONVERT_TO_HUNDRED_OF_MILLISECONDS_NUMBER_SCALE
+
             val joggingTimeSeconds = response.tracks[index].time / CONVERT_TO_SECONDS_NUMBER %
                     CONVERT_TO_SECONDS_NUMBER_SCALE
+
             val joggingTimeMinutes = response.tracks[index].time / CONVERT_TO_MINUTES_NUMBER %
                     CONVERT_TO_MINUTES_NUMBER_SCALE
+
             val joggingTime = applicaiton.applicationContext
                 .getString(R.string.layout_track_list_item_jogging_time_text)
                 .format(joggingTimeMinutes, joggingTimeSeconds, joggingTimeHundredOfMilliseconds)
@@ -105,20 +121,52 @@ class MainViewModel @Inject constructor(
         return trackList
     }
 
-//    private fun mapToRecyclerViewTrackList(response: DataBaseTrack): List<RecyclerViewTrack> {
-//
-//    }
+    private fun mapToRecyclerViewTrackList(listOfDataBaseTracks: List<DataBaseTrack>):
+            List<RecyclerViewTrack> {
+        val recyclerViewTrackList = mutableListOf<RecyclerViewTrack>()
 
-    private fun mapToDataBaseTrackList(recyclerViewTrackList: List<RecyclerViewTrack>):
+        listOfDataBaseTracks.forEachIndexed { index, _ ->
+
+            val simpleDateFormat = SimpleDateFormat(TIME_FORMAT, Locale.getDefault())
+            val date = Date(listOfDataBaseTracks[index].startTime)
+
+            val joggingTimeHundredOfMilliseconds =
+                listOfDataBaseTracks[index]
+                    .joggingTime.toInt() / CONVERT_TO_HUNDRED_OF_MILLISECONDS_NUMBER %
+                        CONVERT_TO_HUNDRED_OF_MILLISECONDS_NUMBER_SCALE
+
+            val joggingTimeSeconds = listOfDataBaseTracks[index]
+                .joggingTime.toInt() / CONVERT_TO_SECONDS_NUMBER % CONVERT_TO_SECONDS_NUMBER_SCALE
+
+            val joggingTimeMinutes = listOfDataBaseTracks[index]
+                .joggingTime.toInt() / CONVERT_TO_MINUTES_NUMBER % CONVERT_TO_MINUTES_NUMBER_SCALE
+
+            val joggingTime = applicaiton.applicationContext
+                .getString(R.string.layout_track_list_item_jogging_time_text)
+                .format(joggingTimeMinutes, joggingTimeSeconds, joggingTimeHundredOfMilliseconds)
+
+            recyclerViewTrackList.add(
+                RecyclerViewTrack(
+                    startTime = simpleDateFormat.format(date),
+                    distance = listOfDataBaseTracks[index].distance,
+                    joggingTime = joggingTime
+                )
+            )
+        }
+
+        return recyclerViewTrackList
+    }
+
+    private fun mapToDataBaseTrackList(networkTracksList: List<NetworkTrack>):
             List<DataBaseTrack> {
         val dataBaseTrackList = mutableListOf<DataBaseTrack>()
 
-        recyclerViewTrackList.forEachIndexed { index, _ ->
+        networkTracksList.forEachIndexed { index, _ ->
             dataBaseTrackList.add(
                 DataBaseTrack(
-                    startTime = recyclerViewTrackList[index].startTime,
-                    distance = recyclerViewTrackList[index].distance,
-                    joggingTime = recyclerViewTrackList[index].joggingTime
+                    startTime = networkTracksList[index].beginsAt,
+                    distance = networkTracksList[index].distance.toString(),
+                    joggingTime = networkTracksList[index].time.toLong()
                 )
             )
         }
