@@ -1,13 +1,15 @@
 package com.senla.fitnessapp.presentation.jogging
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.senla.fitnessapp.data.database.SQLiteRepository
+import com.senla.fitnessapp.data.database.models.DataBaseSavedTrack
 import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import com.senla.fitnessapp.data.network.NetworkRepository
-import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
-import com.senla.fitnessapp.data.network.models.SaveTrackResponse
+import com.senla.fitnessapp.data.network.models.saveTrack.SaveTrackResponse
+import com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest.SaveTrackRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -49,10 +51,19 @@ class JoggingViewModel @Inject constructor(
 
     fun insertTrack(dataBaseTrack: DataBaseTrack) {
         compositeDisposable.add(
-            sqLiteRepository.insertTrack(dataBaseTrack).subscribeOn(Schedulers.io())
+            sqLiteRepository.insertTrack(dataBaseTrack)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({}, {})
         )
+    }
+
+    fun saveTrackForSendingToServer(dataBaseSavedTrack: DataBaseSavedTrack) {
+        compositeDisposable.add(
+        sqLiteRepository.saveTrackForSendingToServer(dataBaseSavedTrack)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({if (it > -1) Log.e("DATABASE", "Saved successfully")}, {}))
     }
 
     fun getTrackById(id: Int) {
@@ -60,7 +71,8 @@ class JoggingViewModel @Inject constructor(
             sqLiteRepository.getTrackById(id)
             !!.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _track.value = it }, {}))
+                .subscribe({ _track.value = it }, {})
+        )
     }
 
     fun getTimeStringFromDouble(time: Double): String {

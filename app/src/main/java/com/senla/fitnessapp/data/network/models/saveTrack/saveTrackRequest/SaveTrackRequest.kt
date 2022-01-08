@@ -1,4 +1,4 @@
-package com.senla.fitnessapp.data.network.models.saveTrackRequest
+package com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest
 
 data class SaveTrackRequest(
     val token: String, val id: Int? = null, val beginsAt: Long, val time: Long,

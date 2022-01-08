@@ -1,18 +1,22 @@
 package com.senla.fitnessapp.presentation.entry
 
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
+import com.senla.fitnessapp.common.Functions.isNetworkAvailable
+import com.senla.fitnessapp.common.Functions.navigateToFragment
 import com.senla.fitnessapp.data.network.models.LogInRequest
 import com.senla.fitnessapp.data.network.models.LogInResponse
 import com.senla.fitnessapp.data.network.models.RegisterRequest
@@ -41,6 +45,8 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 "проверьте введённые данные."
         private const val SERVER_SUCCESS_RESPONSE = "ok"
         private const val SERVER_ERROR_RESPONSE = "error"
+        private const val NO_INTERNET_CONNECTION_TEXT =
+            "Пожалуйста, проверьте ваше интернет соединение."
         const val FIRST_APP_USE_EXTRA_KEY = "First app use"
     }
 
@@ -63,9 +69,10 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (sharedPreferences?.getString(SHARED_PREFERENCES_TOKEN_KEY, null) != null) {
-            navigateToFragment(MainFragment())
+            navigateToFragment(this, MainFragment())
         } else {
             configureLayout()
         }
@@ -89,7 +96,7 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 val mainFragment = MainFragment()
                 mainFragment.arguments = bundle
 
-                navigateToFragment(mainFragment)
+                navigateToFragment(this, mainFragment)
             } else if (it?.status == SERVER_ERROR_RESPONSE){
                 Toast.makeText(requireContext(), LOG_IN_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
@@ -107,29 +114,31 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 val mainFragment = MainFragment()
                 mainFragment.arguments = bundle
 
-                navigateToFragment(mainFragment)
+                navigateToFragment(this, mainFragment)
             } else if (it.status == SERVER_ERROR_RESPONSE) {
                 Toast.makeText(requireContext(), REGISTER_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun navigateToFragment(fragment: Fragment) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment).commit()
-    }
-
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun setAllListeners() {
         binding.apply {
             btnSigningUp.setOnClickListener {
-                entryViewModel.registerUser(REGISTER_QUERY_TEXT,
-                    RegisterRequest(etEmail.text.toString(), etName.text.toString(),
-                        etLastname.text.toString(), etPassword.text.toString()))
-            }
+                if (isNetworkAvailable(requireContext())) {
+                    entryViewModel.registerUser(
+                        REGISTER_QUERY_TEXT,
+                        RegisterRequest(
+                            etEmail.text.toString(), etName.text.toString(),
+                            etLastname.text.toString(), etPassword.text.toString()))
+                } else Toast.makeText(requireContext(),
+                    NO_INTERNET_CONNECTION_TEXT, Toast.LENGTH_SHORT).show()}
             btnLogIn.setOnClickListener {
-                entryViewModel.userLogIn(LOG_IN_QUERY_TEXT,
-                    LogInRequest(etEmail.text.toString(), etPassword.text.toString()))
-            }
+                if (isNetworkAvailable(requireContext())) {
+                    entryViewModel.userLogIn(LOG_IN_QUERY_TEXT,
+                        LogInRequest(etEmail.text.toString(), etPassword.text.toString()))
+                } else Toast.makeText(requireContext(),
+                    NO_INTERNET_CONNECTION_TEXT, Toast.LENGTH_SHORT).show()}
             tvAuthenticationState.setOnClickListener {
                 configureLayout()
             }
@@ -156,8 +165,7 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                     .createUnderlineSpannable(
                         text = SPANNABLE_SIGNING_UP_TEXT,
                         startIndex = SIGNING_UP_SPANNABLE_START_INDEX,
-                        endIndex = SIGNING_UP_SPANNABLE_END_INDEX
-                    )
+                        endIndex = SIGNING_UP_SPANNABLE_END_INDEX)
                 etLastname.isVisible = false
                 etName.isVisible = false
                 etRepeatPassword.isVisible = false

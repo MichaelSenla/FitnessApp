@@ -7,8 +7,6 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -28,18 +26,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
+import com.senla.fitnessapp.common.Functions.isNetworkAvailable
+import com.senla.fitnessapp.data.database.models.DataBaseSavedTrack
 import com.senla.fitnessapp.data.database.models.DataBaseTrack
-import com.senla.fitnessapp.data.network.models.saveTrackRequest.Point
-import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
+import com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest.Point
+import com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest.SaveTrackRequest
 import com.senla.fitnessapp.databinding.FragmentJoggingBinding
 import com.senla.fitnessapp.databinding.LayoutPopupWindowBinding
-import com.senla.fitnessapp.presentation.jogging.service.TimerService
 import com.senla.fitnessapp.presentation.jogging.location.GpsLocation
 import com.senla.fitnessapp.presentation.jogging.location.LocationListener
+import com.senla.fitnessapp.presentation.jogging.service.TimerService
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -61,7 +59,8 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var timerStarted = false
     private var distance = 0
     private var time = 0.0
-    private var point = Point(0.0,0.0)
+    private var point = Point(0.0, 0.0)
+
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
     private var serviceIntent: Intent? = null
@@ -70,6 +69,9 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var locationListener: LocationListener? = null
     private var isFinished: Boolean? = null
     private var tracksStartTime: Long? = null
+    private var popupWindow: PopupWindow? = null
+    private var popupWindowView: View? = null
+    private var popupWindowLayout: LayoutPopupWindowBinding? = null
     private val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -166,14 +168,18 @@ class JoggingFragment : Fragment(), GpsLocation {
         }
     }
 
-
-
     private fun setButtonFinishListener() {
         binding.btnFinish.setOnClickListener {
             stopTimer()
-            isFinished  = true
-            @RequiresApi(Build.VERSION_CODES.M)
-            if (isNetworkAvailable(requireContext())) {
+            isFinished = true
+            buttonFinishNetworkAvailable()
+            buttonFinishNoNetworkConnection()
+        }
+    }
+
+    private fun buttonFinishNetworkAvailable() {
+        @RequiresApi(Build.VERSION_CODES.M)
+        if (isNetworkAvailable(requireContext())) {
             with(binding) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     tvTime.isVisible = true
@@ -187,52 +193,77 @@ class JoggingFragment : Fragment(), GpsLocation {
                     this?.start()
                 }
             }
-            viewModel.insertTrack(DataBaseTrack(startTime = tracksStartTime!!,
-                distance = distance.toString(),
-                joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong()))
-            viewModel.saveTrack(
-                SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
-                    ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
-                    beginsAt = tracksStartTime!!,
-                    time = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
-                    distance = distance,
-                    points = listOf(point),
-                    id = null)) }
-            @RequiresApi(Build.VERSION_CODES.M)
-            if (!isNetworkAvailable(requireContext())) {
-                val popupWindow = PopupWindow(requireContext())
-                val view = layoutInflater.inflate(R.layout.layout_popup_window,
-                    null)
-                popupWindow.contentView = view
-                popupWindow.showAtLocation(view, Gravity.CENTER,0,0)
-                val popupWindowLayout = LayoutPopupWindowBinding.bind(view)
-                with(binding) {
-                        btnStart.isVisible = false
-                        tvTime.isVisible = false
-                        btnFinish.isVisible = false
-                        tvDistance.isVisible = false
-                }
-                popupWindowLayout.tvNoInternetConnectionError.setOnClickListener {
-                    popupWindow.dismiss()
-                    if (isNetworkAvailable(requireContext())) {
-                        with(binding) {
-                            btnStart.isVisible = true
-                            tvTime.isVisible = true
-                            btnFinish.isVisible = true
-                            tvDistance.isVisible = true
-                        }
-                    } else {
-                        popupWindowLayout.tvNoInternetConnectionError.text =
-                            getString(R.string.layout_popup_window_restart_app_text)
-                        popupWindow.showAtLocation(view, Gravity.CENTER,0,0)
-                    }
-                }
-                popupWindowLayout.btnGoToMainFragment.setOnClickListener {
-                    popupWindow.dismiss()
-                    requireActivity().supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainer, MainFragment()).commit()
-                }
+            with(viewModel) {
+                insertTrack(
+                    DataBaseTrack(
+                        startTime = tracksStartTime!!,
+                        distance = distance.toString(),
+                        joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong()))
+                saveTrack(SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
+                            ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
+                        beginsAt = tracksStartTime!!,
+                        time = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
+                        distance = distance, points = listOf(point), id = null)
+                )
             }
+        }
+    }
+
+    private fun buttonFinishNoNetworkConnection() {
+        @RequiresApi(Build.VERSION_CODES.M)
+        if (!isNetworkAvailable(requireContext())) {
+            with(viewModel) {
+            saveTrackForSendingToServer(
+                DataBaseSavedTrack(
+                startTime = tracksStartTime!!,
+                distance = distance.toString(),
+                joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
+                longitude = point.lng)
+            )
+            insertTrack(
+                DataBaseTrack(
+                    startTime = tracksStartTime!!,
+                    distance = distance.toString(),
+                    joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong()))}
+
+            popupWindow = PopupWindow(requireContext())
+            popupWindowView = layoutInflater.inflate(
+                R.layout.layout_popup_window,null, false)
+            popupWindow?.contentView = view
+            popupWindow?.showAtLocation(view, Gravity.CENTER, 0, 0)
+            popupWindowLayout = LayoutPopupWindowBinding.bind(view!!)
+
+            with(binding) {
+                btnStart.isVisible = false
+                tvTime.isVisible = false
+                btnFinish.isVisible = false
+                tvDistance.isVisible = false
+            }
+            setPopMenuListeners()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun setPopMenuListeners() {
+        popupWindowLayout?.tvNoInternetConnectionError?.setOnClickListener {
+            popupWindow?.dismiss()
+            if (isNetworkAvailable(requireContext())) {
+                with(binding) {
+                    btnStart.isVisible = true
+                    tvTime.isVisible = true
+                    btnFinish.isVisible = true
+                    tvDistance.isVisible = true
+                }
+            } else {
+                popupWindowLayout!!.tvNoInternetConnectionError.text =
+                    getString(R.string.layout_popup_window_restart_app_text)
+                popupWindow?.showAtLocation(view, Gravity.CENTER, 0, 0)
+            }
+        }
+        popupWindowLayout?.btnGoToMainFragment?.setOnClickListener {
+            popupWindow?.dismiss()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, MainFragment()).commit()
         }
     }
 
@@ -241,9 +272,11 @@ class JoggingFragment : Fragment(), GpsLocation {
             OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (isFinished == false) {
-                    Toast.makeText(requireContext(),
+                    Toast.makeText(
+                        requireContext(),
                         ON_BACK_PRESSED_ERROR_TOAST,
-                        Toast.LENGTH_SHORT).show()
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     requireActivity().supportFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, MainFragment()).commit()
@@ -259,7 +292,8 @@ class JoggingFragment : Fragment(), GpsLocation {
 
         flipAnimator = AnimatorInflater.loadAnimator(
             requireContext(),
-            R.animator.front_animator) as AnimatorSet
+            R.animator.front_animator
+        ) as AnimatorSet
     }
 
     private fun startTimer() {
@@ -279,16 +313,6 @@ class JoggingFragment : Fragment(), GpsLocation {
         locationListener = LocationListener()
         locationListener?.gpsLocation = this
     }
-
-    @RequiresApi(Build.VERSION_CODES.M)
-    fun isNetworkAvailable(context: Context) =
-        (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).run {
-            getNetworkCapabilities(activeNetwork)?.run {
-                hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                        || hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                        || hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-            } ?: false
-        }
 
     private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

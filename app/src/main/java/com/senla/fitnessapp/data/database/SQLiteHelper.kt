@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.senla.fitnessapp.data.database.models.DataBaseSavedTrack
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.data.database.models.DataBaseTrack
 import io.reactivex.rxjava3.core.Single
@@ -18,25 +19,34 @@ class SQLiteHelper(context: Context):
         private const val DATABASE_NAME = "notification.db"
         private const val TABLE_NOTIFICATION = "notification"
         private const val TABLE_TRACK = "track"
+        private const val TABLE_UNSENT_TRACK = "unsent_track"
         private const val ID = "id"
-        private const val TITLE = "title"
-        private const val TIME = "time"
-        private const val DISTANCE = "DISTANCE"
-        private const val START_TIME = "START_TIME"
-        private const val JOGGING_TIME = "JOGGING_TIME"
+        private const val TITLE = "Title"
+        private const val TIME = "Time"
+        private const val DISTANCE = "Distance"
+        private const val START_TIME = "Start_time"
+        private const val JOGGING_TIME = "Jogging_time"
+        private const val IS_TRACK_ON_SERVER = "Is_track_on_server"
+        private const val LONGITUDE = "Longitude"
+        private const val LATITUDE = "Latitude"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(("CREATE TABLE " + TABLE_NOTIFICATION + "(" + ID
                 + " INTEGER PRIMARY KEY," + TITLE + " TEXT," + TIME + " TEXT" + ")"))
         db?.execSQL(("CREATE TABLE " + TABLE_TRACK + "(" + ID
-                + " INTEGER PRIMARY KEY," + START_TIME + " INTEGER," + DISTANCE + " TEXT," +
+                + " INTEGER PRIMARY KEY," + START_TIME + " INTEGER UNIQUE," + DISTANCE + " TEXT," +
                 JOGGING_TIME + " INTEGER" + ")"))
+        db?.execSQL(("CREATE TABLE " + TABLE_UNSENT_TRACK + "(" + ID
+                + " INTEGER PRIMARY KEY," + START_TIME + " INTEGER UNIQUE," + DISTANCE + " TEXT," +
+                JOGGING_TIME + " INTEGER" + IS_TRACK_ON_SERVER + " TEXT" + LONGITUDE + " REAL" +
+                LATITUDE + " REAL" + ")"))
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_NOTIFICATION")
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_TRACK")
+        db?.execSQL("DROP TABLE IF EXISTS $TABLE_UNSENT_TRACK")
         onCreate(db)
     }
 
@@ -205,5 +215,84 @@ class SQLiteHelper(context: Context):
         cursor.close()
 
         return Single.just(dataBaseTrackList)
+    }
+
+    fun saveTrackForSendingToServer(dataBaseSavedTrack: DataBaseSavedTrack): Single<Long> {
+        val database = this.writableDatabase
+
+        val contentValues = ContentValues()
+        contentValues.put(ID, dataBaseSavedTrack.id)
+        contentValues.put(START_TIME, dataBaseSavedTrack.startTime)
+        contentValues.put(DISTANCE, dataBaseSavedTrack.distance)
+        contentValues.put(JOGGING_TIME, dataBaseSavedTrack.joggingTime)
+        contentValues.put(IS_TRACK_ON_SERVER, "false")
+        contentValues.put(LONGITUDE, dataBaseSavedTrack.longitude)
+        contentValues.put(LATITUDE, dataBaseSavedTrack.latitude)
+
+        val success = database.insert(TABLE_UNSENT_TRACK, null, contentValues)
+        database.close()
+
+        return Single.just(success)
+    }
+
+    fun getAllSavedTracks(): Single<List<DataBaseSavedTrack>> {
+        val dataBaseSavedTrackList: ArrayList<DataBaseSavedTrack> = ArrayList()
+        val selectQuery = "SELECT * FROM $TABLE_UNSENT_TRACK"
+        val database = this.readableDatabase
+
+        val cursor: Cursor?
+
+        try {
+            cursor = database.rawQuery(selectQuery, null)
+        } catch (e: Exception) {
+            database.execSQL(selectQuery)
+            e.printStackTrace()
+
+            return Single.just(dataBaseSavedTrackList)
+        }
+
+        var id: Int
+        var startTime: Long
+        var distance: String
+        var joggingTime: Long
+        var isTrackOnServer: String
+        var longitude: Double
+        var latitude: Double
+
+        if(cursor.moveToFirst()) {
+            do {
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
+                startTime = cursor.getLong(cursor.getColumnIndexOrThrow(START_TIME))
+                distance = cursor.getString(cursor.getColumnIndexOrThrow(DISTANCE))
+                joggingTime = cursor.getLong(cursor.getColumnIndexOrThrow(JOGGING_TIME))
+                isTrackOnServer = cursor.getString(cursor.getColumnIndexOrThrow(IS_TRACK_ON_SERVER))
+                longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(LONGITUDE))
+                latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(LATITUDE))
+
+
+                val track = DataBaseSavedTrack(id = id, startTime = startTime, distance = distance,
+                    joggingTime = joggingTime, isTrackOnServer = isTrackOnServer,
+                    longitude = longitude, latitude = latitude)
+                dataBaseSavedTrackList.add(track)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+
+        return Single.just(dataBaseSavedTrackList)
+    }
+
+    fun changeIsTrackOnServerToTrue(savedTrack: DataBaseSavedTrack): Single<Int> {
+        val database = this.writableDatabase
+
+        val contentValues = ContentValues()
+        contentValues.put(IS_TRACK_ON_SERVER, "true")
+
+        val success = database.update(
+            TABLE_UNSENT_TRACK, contentValues,
+            "id=" + savedTrack.id, null)
+
+        database.close()
+
+        return Single.just(success)
     }
 }

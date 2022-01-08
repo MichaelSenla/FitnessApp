@@ -3,7 +3,8 @@ package com.senla.fitnessapp.data.network
 import com.senla.fitnessapp.data.network.models.*
 import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksRequest
 import com.senla.fitnessapp.data.network.models.getAllTracks.getAllTracksResponse.GetAllTracksResponse
-import com.senla.fitnessapp.data.network.models.saveTrackRequest.SaveTrackRequest
+import com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest.SaveTrackRequest
+import com.senla.fitnessapp.data.network.models.saveTrack.SaveTrackResponse
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 

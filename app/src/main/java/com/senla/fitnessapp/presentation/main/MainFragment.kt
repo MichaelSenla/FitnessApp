@@ -2,7 +2,6 @@ package com.senla.fitnessapp.presentation.main
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -67,10 +66,6 @@ class MainFragment : Fragment() {
                         SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
         } else {
             viewModel.getAllTracksFromDataBase()
-//            viewModel.getAllTracksFromServer(
-//                GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
-//                    sharedPreferences!!.getString(
-//                        SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
         }
     }
 
@@ -86,12 +81,23 @@ class MainFragment : Fragment() {
         binding.fab.setOnClickListener {
             navigateToFragment(JoggingFragment())
         }
+        setPullToRefreshListener()
     }
 
-    private fun pullToRefresh() {
+    private fun setPullToRefreshListener() {
         binding.pullToRefreshLayout.setOnRefreshListener {
-
+            synchronizeWithServer()
+            binding.pullToRefreshLayout.isRefreshing = false
         }
+    }
+
+    private fun synchronizeWithServer() {
+        with(viewModel) {
+        getAllTracksFromServer(
+            GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
+                sharedPreferences.getString(
+                    SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
+        getAllSavedTracksFromDataBase()}
     }
 
     private val navigateToFragment: (Fragment) -> Unit = { fragment ->
@@ -112,13 +118,11 @@ class MainFragment : Fragment() {
         networkTrackListObserver = Observer { recyclerViewTrackList ->
             if (arguments?.getBoolean(FIRST_APP_USE_EXTRA_KEY) == true) {
                 viewModel.saveServerTracksToDataBase()
-                Log.e("CHECKING", "I'm here!")
             }
             trackAdapter?.submitList(recyclerViewTrackList.sortedByDescending { it.startTime })
             binding.progressBar.isVisible = false
         }
         dataBaseTrackListObserver = Observer { recyclerViewTrackList ->
-            Log.e("CHECKING", recyclerViewTrackList.toString())
             trackAdapter?.submitList(recyclerViewTrackList.sortedByDescending { it.startTime })
             binding.progressBar.isVisible = false
         }

@@ -1,7 +1,8 @@
 package com.senla.fitnessapp.data.database
 
-import com.senla.fitnessapp.data.database.models.Notification
+import com.senla.fitnessapp.data.database.models.DataBaseSavedTrack
 import com.senla.fitnessapp.data.database.models.DataBaseTrack
+import com.senla.fitnessapp.data.database.models.Notification
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
@@ -33,4 +34,12 @@ class SQLiteRepository @Inject constructor(private val sqLiteHelper: SQLiteHelpe
     fun getTrackById(id: Int): Single<DataBaseTrack>? = sqLiteHelper.getTrackById(id)
 
     fun getAllTracks(): Single<ArrayList<DataBaseTrack>> = sqLiteHelper.getAllTracks()
+
+    fun saveTrackForSendingToServer(dataBaseSavedTrack: DataBaseSavedTrack): Single<Long> =
+        sqLiteHelper.saveTrackForSendingToServer(dataBaseSavedTrack)
+
+    fun getAllSavedTracks(): Single<List<DataBaseSavedTrack>> = sqLiteHelper.getAllSavedTracks()
+
+    fun changeIsTrackOnServerToTrue(savedTrack: DataBaseSavedTrack): Single<Int> =
+        sqLiteHelper.changeIsTrackOnServerToTrue(savedTrack)
 }
