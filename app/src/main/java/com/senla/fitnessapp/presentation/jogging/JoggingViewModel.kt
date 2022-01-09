@@ -40,6 +40,22 @@ class JoggingViewModel @Inject constructor(
     private val saveTrackResponse: LiveData<SaveTrackResponse>
         get() = _saveTrackResponse
 
+    fun insertTrack(dataBaseTrack: DataBaseTrack) {
+        compositeDisposable.add(
+            sqLiteRepository.insertTrack(dataBaseTrack)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe())
+    }
+
+    fun insertSavedTrack(dataBaseSavedTrack: DataBaseSavedTrack) {
+        compositeDisposable.add(
+            sqLiteRepository.insertSavedTrack(dataBaseSavedTrack)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe())
+    }
+
     fun saveTrack(query: String, saveTrackRequest: SaveTrackRequest) {
         compositeDisposable.add(
             networkRepository.saveTrack(query, saveTrackRequest)
@@ -47,23 +63,6 @@ class JoggingViewModel @Inject constructor(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _saveTrackResponse.value = it }, {})
         )
-    }
-
-    fun insertTrack(dataBaseTrack: DataBaseTrack) {
-        compositeDisposable.add(
-            sqLiteRepository.insertTrack(dataBaseTrack)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({}, {})
-        )
-    }
-
-    fun saveTrackForSendingToServer(dataBaseSavedTrack: DataBaseSavedTrack) {
-        compositeDisposable.add(
-        sqLiteRepository.saveTrackForSendingToServer(dataBaseSavedTrack)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({if (it > -1) Log.e("DATABASE", "Saved successfully")}, {}))
     }
 
     fun getTrackById(id: Int) {

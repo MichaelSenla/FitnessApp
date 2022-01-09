@@ -10,15 +10,22 @@ import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 
 class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(ItemComparator()) {
 
-    class ItemHolder(private val binding: TrackListItemBinding) :
+    var onTrackAdapterItemClickListener: OnTrackAdapterItemClick? = null
+
+    class ItemHolder(private val binding: TrackListItemBinding,
+                     private val onTrackAdapterItemClick: OnTrackAdapterItemClick?) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(recyclerViewTrack: RecyclerViewTrack) {
             with(binding) {
                 tvDistance.text = recyclerViewTrack.distance
                 tvStartTime.text = recyclerViewTrack.startTime
-                tvJoggingTime.text = recyclerViewTrack.joggingTime.toString()
+                tvJoggingTime.text = recyclerViewTrack.joggingTime
             }
+        }
+
+        fun handleItemClick() {
+            binding.root.setOnClickListener { onTrackAdapterItemClick?.onItemClick() }
         }
     }
 
@@ -39,10 +46,16 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
 
         return ItemHolder(
             TrackListItemBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false))
+                LayoutInflater.from(parent.context), parent, false),
+            onTrackAdapterItemClickListener)
     }
 
     override fun onBindViewHolder(holder: ItemHolder, position: Int) {
         holder.bind(getItem(position))
+        holder.handleItemClick()
+    }
+
+    interface OnTrackAdapterItemClick {
+        fun onItemClick()
     }
 }

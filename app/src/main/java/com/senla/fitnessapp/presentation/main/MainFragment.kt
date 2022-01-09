@@ -20,11 +20,12 @@ import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 import com.senla.fitnessapp.presentation.main.recyclerView.TrackAdapter
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
 import com.senla.fitnessapp.presentation.notification.NotificationFragment
+import com.senla.fitnessapp.presentation.track.TrackFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
 
     companion object {
         private const val GET_ALL_TRACKS_FROM_SERVER_QUERY = "tracks"
@@ -71,6 +72,7 @@ class MainFragment : Fragment() {
 
     private fun initRecyclerView() {
         trackAdapter = TrackAdapter()
+        trackAdapter?.onTrackAdapterItemClickListener = this
         with(binding.recyclerView) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = trackAdapter
@@ -136,5 +138,9 @@ class MainFragment : Fragment() {
         viewModel.dataBaseTrackList.removeObserver(dataBaseTrackListObserver!!)
 
         super.onStop()
+    }
+
+    override fun onItemClick() {
+        navigateToFragment(TrackFragment())
     }
 }

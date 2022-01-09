@@ -81,6 +81,10 @@ class MainViewModel @Inject constructor(
         val filteredList = list.filter { it.isTrackOnServer == "false" }
 
         filteredList.forEachIndexed { index, dataBaseSavedTrack ->
+            val pointsList = listOf(Point(filteredList[index].startLongitude,
+                filteredList[index].startLatitude), Point(filteredList[index].finishLongitude,
+                filteredList[index].finishLatitude))
+
             networkList.add(
                 SaveTrackRequest(
                     sharedPreferences
@@ -88,8 +92,7 @@ class MainViewModel @Inject constructor(
                     beginsAt = filteredList[index].startTime,
                     time = filteredList[index].joggingTime,
                     distance = filteredList[index].distance.toInt(),
-                    points = listOf(Point(filteredList[index].longitude,
-                        filteredList[index].latitude))))
+                    points = pointsList))
 
             changeIsTrackOnServerToTrue(dataBaseSavedTrack)
         }
@@ -116,8 +119,7 @@ class MainViewModel @Inject constructor(
             sqLiteRepository.insertTrack(dataBaseTrack)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe()
-        )
+                .subscribe())
     }
 
     fun getAllTracksFromServer(query: String, request: GetAllTracksRequest) {

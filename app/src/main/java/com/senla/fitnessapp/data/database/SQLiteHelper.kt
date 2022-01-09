@@ -27,8 +27,10 @@ class SQLiteHelper(context: Context):
         private const val START_TIME = "Start_time"
         private const val JOGGING_TIME = "Jogging_time"
         private const val IS_TRACK_ON_SERVER = "Is_track_on_server"
-        private const val LONGITUDE = "Longitude"
-        private const val LATITUDE = "Latitude"
+        private const val START_LONGITUDE = "Start_longitude"
+        private const val START_LATITUDE = "Start_latitude"
+        private const val FINISH_LONGITUDE = "Finish_longitude"
+        private const val FINISH_LATITUDE = "Finish_latitude"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -36,11 +38,14 @@ class SQLiteHelper(context: Context):
                 + " INTEGER PRIMARY KEY," + TITLE + " TEXT," + TIME + " TEXT" + ")"))
         db?.execSQL(("CREATE TABLE " + TABLE_TRACK + "(" + ID
                 + " INTEGER PRIMARY KEY," + START_TIME + " INTEGER UNIQUE," + DISTANCE + " TEXT," +
-                JOGGING_TIME + " INTEGER" + ")"))
+                JOGGING_TIME + " INTEGER," + START_LONGITUDE + " REAL," +
+                START_LATITUDE + " REAL, " + FINISH_LONGITUDE + " REAL," +
+                FINISH_LATITUDE + " REAL" + ")"))
         db?.execSQL(("CREATE TABLE " + TABLE_UNSENT_TRACK + "(" + ID
                 + " INTEGER PRIMARY KEY," + START_TIME + " INTEGER UNIQUE," + DISTANCE + " TEXT," +
-                JOGGING_TIME + " INTEGER" + IS_TRACK_ON_SERVER + " TEXT" + LONGITUDE + " REAL" +
-                LATITUDE + " REAL" + ")"))
+                JOGGING_TIME + " INTEGER," + IS_TRACK_ON_SERVER + " TEXT," +
+                START_LONGITUDE + " REAL," + START_LATITUDE + " REAL," +
+                FINISH_LONGITUDE + " REAL," + FINISH_LATITUDE + " REAL" + ")"))
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
@@ -127,7 +132,6 @@ class SQLiteHelper(context: Context):
 
         val success = database.update(TABLE_NOTIFICATION, contentValues,
             "id=" + notification.id, null)
-
         database.close()
 
         return Single.just(success)
@@ -140,7 +144,6 @@ class SQLiteHelper(context: Context):
         contentValues.put(ID, id)
 
         val success = database.delete(TABLE_NOTIFICATION, "id=$id", null)
-
         database.close()
 
         return Single.just(success)
@@ -154,6 +157,10 @@ class SQLiteHelper(context: Context):
         contentValues.put(START_TIME, dataBaseTrack.startTime)
         contentValues.put(DISTANCE, dataBaseTrack.distance)
         contentValues.put(JOGGING_TIME, dataBaseTrack.joggingTime)
+        contentValues.put(START_LONGITUDE, dataBaseTrack.startLongitude)
+        contentValues.put(START_LATITUDE, dataBaseTrack.startLatitude)
+        contentValues.put(FINISH_LONGITUDE, dataBaseTrack.finishLongitude)
+        contentValues.put(FINISH_LATITUDE, dataBaseTrack.finishLatitude)
 
         val success = database.insert(TABLE_TRACK, null, contentValues)
         database.close()
@@ -171,6 +178,10 @@ class SQLiteHelper(context: Context):
                 track.startTime = it.getLong(it.getColumnIndexOrThrow(START_TIME))
                 track.distance = it.getString(it.getColumnIndexOrThrow(DISTANCE))
                 track.joggingTime = it.getLong(it.getColumnIndexOrThrow(JOGGING_TIME))
+                track.startLongitude = it.getDouble(it.getColumnIndexOrThrow(START_LONGITUDE))
+                track.startLatitude = it.getDouble(it.getColumnIndexOrThrow(START_LATITUDE))
+                track.finishLongitude = it.getDouble(it.getColumnIndexOrThrow(FINISH_LONGITUDE))
+                track.finishLatitude = it.getDouble(it.getColumnIndexOrThrow(FINISH_LATITUDE))
 
                 return Single.just(track)
             }
@@ -198,6 +209,10 @@ class SQLiteHelper(context: Context):
         var startTime: Long
         var distance: String
         var joggingTime: Long
+        var startLongitude: Double
+        var startLatitude: Double
+        var finishLongitude: Double
+        var finishLatitude: Double
 
         if(cursor.moveToFirst()) {
             do {
@@ -205,10 +220,16 @@ class SQLiteHelper(context: Context):
                 startTime = cursor.getLong(cursor.getColumnIndexOrThrow(START_TIME))
                 distance = cursor.getString(cursor.getColumnIndexOrThrow(DISTANCE))
                 joggingTime = cursor.getLong(cursor.getColumnIndexOrThrow(JOGGING_TIME))
-
+                startLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(START_LONGITUDE))
+                startLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(START_LATITUDE))
+                finishLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(FINISH_LONGITUDE))
+                finishLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(FINISH_LATITUDE))
 
                 val track = DataBaseTrack(id = id, startTime = startTime, distance = distance,
-                    joggingTime = joggingTime)
+                    joggingTime = joggingTime, startLongitude = startLongitude,
+                    startLatitude = startLatitude, finishLongitude = finishLongitude,
+                    finishLatitude = finishLatitude)
+
                 dataBaseTrackList.add(track)
             } while (cursor.moveToNext())
         }
@@ -217,7 +238,7 @@ class SQLiteHelper(context: Context):
         return Single.just(dataBaseTrackList)
     }
 
-    fun saveTrackForSendingToServer(dataBaseSavedTrack: DataBaseSavedTrack): Single<Long> {
+    fun insertSavedTrack(dataBaseSavedTrack: DataBaseSavedTrack): Single<Long> {
         val database = this.writableDatabase
 
         val contentValues = ContentValues()
@@ -226,8 +247,10 @@ class SQLiteHelper(context: Context):
         contentValues.put(DISTANCE, dataBaseSavedTrack.distance)
         contentValues.put(JOGGING_TIME, dataBaseSavedTrack.joggingTime)
         contentValues.put(IS_TRACK_ON_SERVER, "false")
-        contentValues.put(LONGITUDE, dataBaseSavedTrack.longitude)
-        contentValues.put(LATITUDE, dataBaseSavedTrack.latitude)
+        contentValues.put(START_LONGITUDE, dataBaseSavedTrack.startLongitude)
+        contentValues.put(START_LATITUDE, dataBaseSavedTrack.startLatitude)
+        contentValues.put(FINISH_LONGITUDE, dataBaseSavedTrack.finishLongitude)
+        contentValues.put(FINISH_LATITUDE, dataBaseSavedTrack.finishLatitude)
 
         val success = database.insert(TABLE_UNSENT_TRACK, null, contentValues)
         database.close()
@@ -256,8 +279,10 @@ class SQLiteHelper(context: Context):
         var distance: String
         var joggingTime: Long
         var isTrackOnServer: String
-        var longitude: Double
-        var latitude: Double
+        var startLongitude: Double
+        var startLatitude: Double
+        var finishLongitude: Double
+        var finishLatitude: Double
 
         if(cursor.moveToFirst()) {
             do {
@@ -266,13 +291,16 @@ class SQLiteHelper(context: Context):
                 distance = cursor.getString(cursor.getColumnIndexOrThrow(DISTANCE))
                 joggingTime = cursor.getLong(cursor.getColumnIndexOrThrow(JOGGING_TIME))
                 isTrackOnServer = cursor.getString(cursor.getColumnIndexOrThrow(IS_TRACK_ON_SERVER))
-                longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(LONGITUDE))
-                latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(LATITUDE))
-
+                startLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(START_LONGITUDE))
+                startLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(START_LATITUDE))
+                finishLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(FINISH_LONGITUDE))
+                finishLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(FINISH_LATITUDE))
 
                 val track = DataBaseSavedTrack(id = id, startTime = startTime, distance = distance,
                     joggingTime = joggingTime, isTrackOnServer = isTrackOnServer,
-                    longitude = longitude, latitude = latitude)
+                    startLongitude = startLongitude, startLatitude = startLatitude,
+                    finishLongitude = finishLongitude, finishLatitude = finishLatitude)
+
                 dataBaseSavedTrackList.add(track)
             } while (cursor.moveToNext())
         }
@@ -288,8 +316,7 @@ class SQLiteHelper(context: Context):
         contentValues.put(IS_TRACK_ON_SERVER, "true")
 
         val success = database.update(
-            TABLE_UNSENT_TRACK, contentValues,
-            "id=" + savedTrack.id, null)
+            TABLE_UNSENT_TRACK, contentValues, "id=" + savedTrack.id, null)
 
         database.close()
 

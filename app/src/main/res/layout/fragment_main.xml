@@ -17,6 +17,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
 
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/pullToRefreshLayout"
             android:layout_width="match_parent"
@@ -38,6 +42,7 @@
             android:layout_marginBottom="@dimen/medium_margin"
             android:src="@drawable/ic_jogging"
             tools:ignore="contentDescription" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </FrameLayout>
 
     <com.google.android.material.navigation.NavigationView

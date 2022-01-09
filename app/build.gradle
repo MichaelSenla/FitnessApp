@@ -82,4 +82,7 @@ dependencies {
 
     // Leak Canary
     debugImplementation('com.squareup.leakcanary:leakcanary-android:2.8')
+
+    // FusedLocationProvider
+    implementation 'com.google.android.gms:play-services-location:19.0.0'
 }

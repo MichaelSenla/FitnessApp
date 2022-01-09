@@ -3,6 +3,7 @@ package com.senla.fitnessapp.presentation.jogging
 import android.Manifest
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
+import android.annotation.SuppressLint
 import android.content.*
 import android.content.pm.PackageManager
 import android.location.Location
@@ -24,6 +25,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
 import com.senla.fitnessapp.common.Functions.isNetworkAvailable
@@ -38,6 +41,7 @@ import com.senla.fitnessapp.presentation.jogging.location.LocationListener
 import com.senla.fitnessapp.presentation.jogging.service.TimerService
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,6 +54,8 @@ class JoggingFragment : Fragment(), GpsLocation {
         private const val ON_BACK_PRESSED_ERROR_TOAST = "Для начала нажмите на кнопку \"Финиш\"," +
                 " пожалуйста."
         private const val FINISHED_DISTANCE_TEXT = "Пройденная дистанция"
+        private const val ID_BOUND = 10_000_000
+
         var lastLocation: Location? = null
     }
 
@@ -60,6 +66,10 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var distance = 0
     private var time = 0.0
     private var point = Point(0.0, 0.0)
+    private var startLongitude: Double = 0.0
+    private var startLatitude: Double = 0.0
+    private var trackId = 0
+    private var fusedLocationClient: FusedLocationProviderClient? = null
 
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
@@ -118,8 +128,18 @@ class JoggingFragment : Fragment(), GpsLocation {
         setButtonFinishListener()
 
         requireContext().registerReceiver(updateTime, IntentFilter(TimerService.TIMER_UPDATED))
-
         serviceIntent = Intent(requireContext(), TimerService::class.java)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        trackId = Random().nextInt(ID_BOUND)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun getStartLocation() {
+        fusedLocationClient?.lastLocation
+            ?.addOnSuccessListener { location: Location? ->
+                startLongitude = location!!.longitude
+                startLatitude = location!!.latitude
+            }
     }
 
     private fun checkPermissions() {
@@ -165,6 +185,7 @@ class JoggingFragment : Fragment(), GpsLocation {
                 }, DELAY)
             }
             getGps()
+            //getStartLocation()
         }
     }
 
@@ -195,15 +216,22 @@ class JoggingFragment : Fragment(), GpsLocation {
             }
             with(viewModel) {
                 insertTrack(
-                    DataBaseTrack(
+                    DataBaseTrack(id = trackId,
                         startTime = tracksStartTime!!,
                         distance = distance.toString(),
-                        joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong()))
-                saveTrack(SAVE_TRACK_QUERY, SaveTrackRequest(sharedPreferences
+                        joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
+                        startLongitude = startLongitude, startLatitude = startLatitude,
+                        finishLongitude = point.lng, finishLatitude = point.lat
+                    )
+                )
+                saveTrack(
+                    SAVE_TRACK_QUERY, SaveTrackRequest(
+                        sharedPreferences
                             ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
                         beginsAt = tracksStartTime!!,
                         time = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
-                        distance = distance, points = listOf(point), id = null)
+                        distance = distance, points = listOf(point), id = null
+                    )
                 )
             }
         }
@@ -213,25 +241,30 @@ class JoggingFragment : Fragment(), GpsLocation {
         @RequiresApi(Build.VERSION_CODES.M)
         if (!isNetworkAvailable(requireContext())) {
             with(viewModel) {
-            saveTrackForSendingToServer(
-                DataBaseSavedTrack(
-                startTime = tracksStartTime!!,
-                distance = distance.toString(),
-                joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
-                longitude = point.lng)
-            )
-            insertTrack(
-                DataBaseTrack(
-                    startTime = tracksStartTime!!,
-                    distance = distance.toString(),
-                    joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong()))}
+                insertSavedTrack(
+                    DataBaseSavedTrack( id = trackId,
+                        startTime = tracksStartTime!!,
+                        distance = distance.toString(),
+                        joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
+                        startLongitude = startLongitude, startLatitude = startLatitude,
+                        finishLongitude = point.lng, finishLatitude = point.lat))
+                insertTrack(
+                    DataBaseTrack(id = trackId,
+                        startTime = tracksStartTime!!,
+                        distance = distance.toString(),
+                        joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
+                        startLongitude = startLongitude, startLatitude = startLatitude,
+                        finishLongitude = point.lng, finishLatitude = point.lat
+                    ))
+            }
 
             popupWindow = PopupWindow(requireContext())
             popupWindowView = layoutInflater.inflate(
-                R.layout.layout_popup_window,null, false)
-            popupWindow?.contentView = view
-            popupWindow?.showAtLocation(view, Gravity.CENTER, 0, 0)
-            popupWindowLayout = LayoutPopupWindowBinding.bind(view!!)
+                R.layout.layout_popup_window, null, false
+            )
+            popupWindow?.contentView = popupWindowView
+            popupWindow?.showAtLocation(popupWindowView, Gravity.CENTER, 0, 0)
+            popupWindowLayout = LayoutPopupWindowBinding.bind(popupWindowView!!)
 
             with(binding) {
                 btnStart.isVisible = false
@@ -323,6 +356,8 @@ class JoggingFragment : Fragment(), GpsLocation {
 
     override fun onDestroyView() {
         _binding = null
+        locationManager = null
+        locationListener = null
         requireContext().unregisterReceiver(updateTime)
 
         super.onDestroyView()
@@ -335,7 +370,7 @@ class JoggingFragment : Fragment(), GpsLocation {
 
         point = Point(location.longitude, location.latitude)
 
-        location.accuracy = 5F
+//        location.accuracy = 5F
         lastLocation = location
     }
 

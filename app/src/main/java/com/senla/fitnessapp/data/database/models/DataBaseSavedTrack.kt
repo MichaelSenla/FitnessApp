@@ -8,8 +8,10 @@ data class DataBaseSavedTrack(
     var distance: String = "",
     var joggingTime: Long = 0,
     var isTrackOnServer: String = "false",
-    var longitude: Double = 0.0,
-    var latitude: Double = 0.0
+    var startLongitude: Double = 0.0,
+    var startLatitude: Double = 0.0,
+    var finishLongitude: Double = 0.0,
+    var finishLatitude: Double = 0.0
 ) {
     companion object {
         private const val ID_BOUND = 100000

@@ -31,12 +31,12 @@ class SQLiteRepository @Inject constructor(private val sqLiteHelper: SQLiteHelpe
     fun insertTrack(dataBaseTrack: DataBaseTrack): Single<Long> =
         sqLiteHelper.insertTrack(dataBaseTrack)
 
+    fun insertSavedTrack(dataBaseSavedTrack: DataBaseSavedTrack): Single<Long> =
+        sqLiteHelper.insertSavedTrack(dataBaseSavedTrack)
+
     fun getTrackById(id: Int): Single<DataBaseTrack>? = sqLiteHelper.getTrackById(id)
 
     fun getAllTracks(): Single<ArrayList<DataBaseTrack>> = sqLiteHelper.getAllTracks()
-
-    fun saveTrackForSendingToServer(dataBaseSavedTrack: DataBaseSavedTrack): Single<Long> =
-        sqLiteHelper.saveTrackForSendingToServer(dataBaseSavedTrack)
 
     fun getAllSavedTracks(): Single<List<DataBaseSavedTrack>> = sqLiteHelper.getAllSavedTracks()
 

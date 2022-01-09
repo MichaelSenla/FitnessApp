@@ -22,11 +22,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrackFragment : Fragment(), AddMapsMarkers {
+class TrackFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
         var mapFragment: SupportMapFragment? = null
-        var googleMap: GoogleMap? = null
+        var map: GoogleMap? = null
     }
 
     private var _binding: FragmentTrackBinding? = null
@@ -53,9 +53,7 @@ class TrackFragment : Fragment(), AddMapsMarkers {
     private fun setMap() {
         mapFragment = requireActivity().supportFragmentManager.findFragmentById(R.id.map)
                 as SupportMapFragment?
-        mapFragment?.getMapAsync(OnMapReadyCallback {
-            googleMap = it
-        })
+        mapFragment?.getMapAsync(this)
     }
 
     private fun setNavigationMenuButtons() {
@@ -83,16 +81,8 @@ class TrackFragment : Fragment(), AddMapsMarkers {
         super.onDestroyView()
     }
 
-    override fun addStartMarker(latLng: LatLng) {
-//        googleMap?.addMarker(MarkerOptions().position(latLng).title())
-    }
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
 
-    override fun addFinishMarker(latLng: LatLng) {
-        TODO("Not yet implemented")
     }
-}
-
-interface AddMapsMarkers {
-    fun addStartMarker(latLng: LatLng)
-    fun addFinishMarker(latLng: LatLng)
 }
