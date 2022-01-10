@@ -12,8 +12,10 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
 
     var onTrackAdapterItemClickListener: OnTrackAdapterItemClick? = null
 
-    class ItemHolder(private val binding: TrackListItemBinding,
-                     private val onTrackAdapterItemClick: OnTrackAdapterItemClick?) :
+    class ItemHolder(
+        private val binding: TrackListItemBinding,
+        private val onTrackAdapterItemClick: OnTrackAdapterItemClick?
+    ) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(recyclerViewTrack: RecyclerViewTrack) {
@@ -24,20 +26,29 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
             }
         }
 
-        fun handleItemClick() {
-            binding.root.setOnClickListener { onTrackAdapterItemClick?.onItemClick() }
+        fun handleItemClick(
+            startLongitude: Double, startLatitude: Double, finishLongitude: Double,
+            finishLatitude: Double, joggingTime: String, distance: String
+        ) {
+            binding.root.setOnClickListener {
+                onTrackAdapterItemClick?.onItemClick(
+                    startLongitude,
+                    startLatitude, finishLongitude, finishLatitude, joggingTime, distance)
+            }
         }
     }
 
     class ItemComparator : DiffUtil.ItemCallback<RecyclerViewTrack>() {
 
         override fun areItemsTheSame(
-            oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
+            oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack
+        ): Boolean {
             return oldItem == newItem
         }
 
         override fun areContentsTheSame(
-            oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack): Boolean {
+            oldItem: RecyclerViewTrack, newItem: RecyclerViewTrack
+        ): Boolean {
             return oldItem == newItem
         }
     }
@@ -46,16 +57,27 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
 
         return ItemHolder(
             TrackListItemBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false),
-            onTrackAdapterItemClickListener)
+                LayoutInflater.from(parent.context), parent, false
+            ),
+            onTrackAdapterItemClickListener
+        )
     }
 
     override fun onBindViewHolder(holder: ItemHolder, position: Int) {
         holder.bind(getItem(position))
-        holder.handleItemClick()
+        with(currentList[position]) {
+            holder.handleItemClick(
+                startLongitude,
+                startLatitude, finishLongitude,
+                finishLatitude, joggingTime,
+                distance)
+        }
     }
 
     interface OnTrackAdapterItemClick {
-        fun onItemClick()
+        fun onItemClick(
+            startLongitude: Double, startLatitude: Double, finishLongitude: Double,
+            finishLatitude: Double, joggingTime: String, distance: String
+        )
     }
 }

@@ -54,7 +54,8 @@ class JoggingFragment : Fragment(), GpsLocation {
         private const val ON_BACK_PRESSED_ERROR_TOAST = "Для начала нажмите на кнопку \"Финиш\"," +
                 " пожалуйста."
         private const val FINISHED_DISTANCE_TEXT = "Пройденная дистанция"
-        private const val ID_BOUND = 10_000_000
+        private const val LOCATION_IS_EMPTY_ERROR = "Извините, не получается получить доступ" +
+                " к местоположению."
 
         var lastLocation: Location? = null
     }
@@ -65,10 +66,9 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var timerStarted = false
     private var distance = 0
     private var time = 0.0
-    private var point = Point(0.0, 0.0)
     private var startLongitude: Double = 0.0
     private var startLatitude: Double = 0.0
-    private var trackId = 0
+    private var point: Point? = null
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
     @set:Inject
@@ -130,15 +130,16 @@ class JoggingFragment : Fragment(), GpsLocation {
         requireContext().registerReceiver(updateTime, IntentFilter(TimerService.TIMER_UPDATED))
         serviceIntent = Intent(requireContext(), TimerService::class.java)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        trackId = Random().nextInt(ID_BOUND)
     }
 
     @SuppressLint("MissingPermission")
     private fun getStartLocation() {
         fusedLocationClient?.lastLocation
-            ?.addOnSuccessListener { location: Location? ->
-                startLongitude = location!!.longitude
-                startLatitude = location!!.latitude
+            ?.addOnSuccessListener { location ->
+                startLongitude = location.longitude
+                startLatitude = location.latitude
+            }?.addOnFailureListener {
+                Toast.makeText(requireContext(), LOCATION_IS_EMPTY_ERROR, Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -185,7 +186,7 @@ class JoggingFragment : Fragment(), GpsLocation {
                 }, DELAY)
             }
             getGps()
-            //getStartLocation()
+            getStartLocation()
         }
     }
 
@@ -216,13 +217,13 @@ class JoggingFragment : Fragment(), GpsLocation {
             }
             with(viewModel) {
                 insertTrack(
-                    DataBaseTrack(id = trackId,
+                    DataBaseTrack(
                         startTime = tracksStartTime!!,
                         distance = distance.toString(),
                         joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                         startLongitude = startLongitude, startLatitude = startLatitude,
-                        finishLongitude = point.lng, finishLatitude = point.lat
-                    )
+                        finishLongitude = point?.lng ?: startLongitude,
+                        finishLatitude = point?.lat ?: startLatitude)
                 )
                 saveTrack(
                     SAVE_TRACK_QUERY, SaveTrackRequest(
@@ -230,8 +231,7 @@ class JoggingFragment : Fragment(), GpsLocation {
                             ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
                         beginsAt = tracksStartTime!!,
                         time = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
-                        distance = distance, points = listOf(point), id = null
-                    )
+                        distance = distance, points = listOf(point ?: Point(0.0, 0.0)))
                 )
             }
         }
@@ -242,20 +242,21 @@ class JoggingFragment : Fragment(), GpsLocation {
         if (!isNetworkAvailable(requireContext())) {
             with(viewModel) {
                 insertSavedTrack(
-                    DataBaseSavedTrack( id = trackId,
+                    DataBaseSavedTrack(
                         startTime = tracksStartTime!!,
                         distance = distance.toString(),
                         joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                         startLongitude = startLongitude, startLatitude = startLatitude,
-                        finishLongitude = point.lng, finishLatitude = point.lat))
+                        finishLongitude = point?.lng ?: startLongitude,
+                        finishLatitude = point?.lat ?: startLatitude))
                 insertTrack(
-                    DataBaseTrack(id = trackId,
+                    DataBaseTrack(
                         startTime = tracksStartTime!!,
                         distance = distance.toString(),
                         joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                         startLongitude = startLongitude, startLatitude = startLatitude,
-                        finishLongitude = point.lng, finishLatitude = point.lat
-                    ))
+                        finishLongitude = point?.lng ?: startLongitude,
+                        finishLatitude = point?.lat ?: startLatitude))
             }
 
             popupWindow = PopupWindow(requireContext())

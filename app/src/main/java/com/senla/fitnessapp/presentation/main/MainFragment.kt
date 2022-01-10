@@ -28,7 +28,10 @@ import javax.inject.Inject
 class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
 
     companion object {
-        private const val GET_ALL_TRACKS_FROM_SERVER_QUERY = "tracks"
+        const val GET_ALL_TRACKS_FROM_SERVER_QUERY = "tracks"
+        const val LOCATION_COORDINATES_EXTRA_KEY = "Location coordinates"
+        const val TRACK_JOGGING_TIME_EXTRA_KEY = "TRACK_START_TIME"
+        const val TRACK_DISTANCE_EXTRA_KEY = "DISTANCE"
     }
 
     private var _binding: FragmentMainBinding? = null
@@ -54,8 +57,7 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
         setMainFragmentListeners()
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemNotification,
-            NotificationFragment(), sharedPreferences!!
-        )
+            NotificationFragment(), sharedPreferences!!)
 
         initRecyclerView()
 
@@ -88,23 +90,16 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
 
     private fun setPullToRefreshListener() {
         binding.pullToRefreshLayout.setOnRefreshListener {
-            synchronizeWithServer()
+            viewModel.getAllTracksFromDataBase()
+            viewModel.synchronizeWithServer()
             binding.pullToRefreshLayout.isRefreshing = false
         }
-    }
-
-    private fun synchronizeWithServer() {
-        with(viewModel) {
-        getAllTracksFromServer(
-            GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
-                sharedPreferences.getString(
-                    SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
-        getAllSavedTracksFromDataBase()}
     }
 
     private val navigateToFragment: (Fragment) -> Unit = { fragment ->
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
             .commit()
     }
 
@@ -140,7 +135,23 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
         super.onStop()
     }
 
-    override fun onItemClick() {
-        navigateToFragment(TrackFragment())
+    override fun onItemClick(
+        startLongitude: Double,
+        startLatitude: Double,
+        finishLongitude: Double,
+        finishLatitude: Double,
+        startTime: String,
+        distance: String
+    ) {
+        val bundle = Bundle()
+        bundle.putDoubleArray(
+            LOCATION_COORDINATES_EXTRA_KEY, doubleArrayOf(startLongitude, startLatitude,
+        finishLongitude, finishLatitude))
+        bundle.putString(TRACK_JOGGING_TIME_EXTRA_KEY, startTime)
+        bundle.putString(TRACK_DISTANCE_EXTRA_KEY, distance)
+        val fragment = TrackFragment()
+        fragment.arguments = bundle
+
+        navigateToFragment(fragment)
     }
 }

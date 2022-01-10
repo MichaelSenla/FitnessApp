@@ -1,18 +1,30 @@
 package com.senla.fitnessapp.presentation.notification
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
+import com.senla.fitnessapp.common.MainActivity
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationBinding
+import com.senla.fitnessapp.presentation.jogging.JoggingFragment
 import com.senla.fitnessapp.presentation.main.MainFragment
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment
@@ -27,8 +39,15 @@ class NotificationFragment : Fragment(),
 
     companion object {
         const val NOTIFICATION_DIALOG_TAG = "notificationDialog"
+        private const val PENDING_INTENT_REQUEST_CODE = 0
+        private const val NOTIFICATION_TITLE = "Уведомление"
+        private const val NOTIFICATION_TEXT = "Пожалуйста, начните тренировку!" +
+                " В здоровом теле здоровый дух!"
     }
 
+    private val CHANNEL_ID = "channelID"
+    private val CHANNEL_NAME = "channelName"
+    private val NOTIFICATION_ID = 0
     private var _binding: FragmentNotificationBinding? = null
     private val binding get() = _binding!!
     private val viewModel: NotificationViewModel by viewModels()
@@ -52,6 +71,37 @@ class NotificationFragment : Fragment(),
             MainFragment(), sharedPreferences!!)
         setAddNotificationButton()
         initRecyclerView()
+        createNotificationChannel()
+
+//        val intent = Intent(requireContext(), MainActivity::class.java)
+//        val pendingIntent = TaskStackBuilder.create(requireContext()).run {
+//            addNextIntentWithParentStack(intent)
+//            getPendingIntent(PENDING_INTENT_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT)
+//        }
+//
+//        val notification = NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+//            .setContentTitle(NOTIFICATION_TITLE)
+//            .setSmallIcon(R.id.icon)
+//            .setContentText(NOTIFICATION_TEXT)
+//            .setPriority(NotificationCompat.PRIORITY_HIGH)
+//            .setContentIntent(pendingIntent)
+//            .build()
+//
+//        val notificationManager = NotificationManagerCompat.from(requireContext())
+//        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun createNotificationChannel() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH).apply {
+                    lightColor = Color.GREEN
+                    enableLights(true)
+            }
+            val manager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE)
+                    as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
     }
 
     private fun setAddNotificationButton() {

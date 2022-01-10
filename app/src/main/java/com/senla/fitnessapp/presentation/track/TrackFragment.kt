@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -16,6 +17,9 @@ import com.senla.fitnessapp.R
 import com.senla.fitnessapp.databinding.FragmentTrackBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.main.MainFragment
+import com.senla.fitnessapp.presentation.main.MainFragment.Companion.LOCATION_COORDINATES_EXTRA_KEY
+import com.senla.fitnessapp.presentation.main.MainFragment.Companion.TRACK_DISTANCE_EXTRA_KEY
+import com.senla.fitnessapp.presentation.main.MainFragment.Companion.TRACK_JOGGING_TIME_EXTRA_KEY
 import com.senla.fitnessapp.presentation.navigation.SideNavigation
 import com.senla.fitnessapp.presentation.notification.NotificationFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +29,10 @@ import javax.inject.Inject
 class TrackFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
+        private const val START_MARKER_LABEL = "Старт"
+        private const val FINISH_MARKER_LABEL = "Финиш"
+        private const val DISTANCE_TEXT = "Дистанция: \n"
+        private const val METERS_TEXT = " метров"
         var mapFragment: SupportMapFragment? = null
         var map: GoogleMap? = null
     }
@@ -46,12 +54,19 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        with(binding) {
+            tvJoggingTime.text = arguments?.getString(TRACK_JOGGING_TIME_EXTRA_KEY)
+            tvJoggingDistance.text = StringBuilder(DISTANCE_TEXT).also {
+                    it.append(arguments?.getString(TRACK_DISTANCE_EXTRA_KEY))
+                    it.append(METERS_TEXT)
+                }
+        }
         setNavigationMenuButtons()
         setMap()
     }
 
     private fun setMap() {
-        mapFragment = requireActivity().supportFragmentManager.findFragmentById(R.id.map)
+        mapFragment = childFragmentManager.findFragmentById(R.id.map)
                 as SupportMapFragment?
         mapFragment?.getMapAsync(this)
     }
@@ -84,5 +99,21 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
+        val locationCoordinates = arguments?.getDoubleArray(LOCATION_COORDINATES_EXTRA_KEY)
+        val startCoordinates = LatLng(
+            locationCoordinates!!.component1(),
+            locationCoordinates.component2()
+        )
+
+        map!!.addMarker(MarkerOptions().position(startCoordinates).title(START_MARKER_LABEL))
+        map!!.addMarker(
+            MarkerOptions().position(
+                LatLng(
+                    locationCoordinates.component3(),
+                    locationCoordinates.component4()
+                )
+            ).title(FINISH_MARKER_LABEL)
+        )
+        map!!.animateCamera(CameraUpdateFactory.newLatLngZoom(startCoordinates, 20F))
     }
 }

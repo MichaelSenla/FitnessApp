@@ -16,6 +16,7 @@ import com.senla.fitnessapp.data.network.models.getAllTracks.getAllTracksRespons
 import com.senla.fitnessapp.data.network.models.getAllTracks.getAllTracksResponse.NetworkTrack
 import com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest.Point
 import com.senla.fitnessapp.data.network.models.saveTrack.saveTrackRequest.SaveTrackRequest
+import com.senla.fitnessapp.presentation.main.MainFragment.Companion.GET_ALL_TRACKS_FROM_SERVER_QUERY
 import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -24,6 +25,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.logging.Handler
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,6 +49,7 @@ class MainViewModel @Inject constructor(
 
     private var compositeDisposable: CompositeDisposable? = CompositeDisposable()
     private var networkTracksList = listOf<NetworkTrack>()
+    private var dataBaseList: List<DataBaseTrack>? = null
 
     private val _trackListFromDataBase = MutableLiveData<List<RecyclerViewTrack>>()
     val dataBaseTrackList: LiveData<List<RecyclerViewTrack>>
@@ -62,10 +65,11 @@ class MainViewModel @Inject constructor(
 
     private fun changeIsTrackOnServerToTrue(savedTrack: DataBaseSavedTrack) {
         compositeDisposable?.add(
-        sqLiteRepository.changeIsTrackOnServerToTrue(savedTrack)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe())
+            sqLiteRepository.changeIsTrackOnServerToTrue(savedTrack)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+        )
     }
 
     private fun saveTrackToServer(query: String, saveTrackRequest: SaveTrackRequest) {
@@ -81,9 +85,15 @@ class MainViewModel @Inject constructor(
         val filteredList = list.filter { it.isTrackOnServer == "false" }
 
         filteredList.forEachIndexed { index, dataBaseSavedTrack ->
-            val pointsList = listOf(Point(filteredList[index].startLongitude,
-                filteredList[index].startLatitude), Point(filteredList[index].finishLongitude,
-                filteredList[index].finishLatitude))
+            val pointsList = listOf(
+                Point(
+                    filteredList[index].startLongitude,
+                    filteredList[index].startLatitude
+                ), Point(
+                    filteredList[index].finishLongitude,
+                    filteredList[index].finishLatitude
+                )
+            )
 
             networkList.add(
                 SaveTrackRequest(
@@ -92,7 +102,9 @@ class MainViewModel @Inject constructor(
                     beginsAt = filteredList[index].startTime,
                     time = filteredList[index].joggingTime,
                     distance = filteredList[index].distance.toInt(),
-                    points = pointsList))
+                    points = pointsList
+                )
+            )
 
             changeIsTrackOnServerToTrue(dataBaseSavedTrack)
         }
@@ -111,7 +123,12 @@ class MainViewModel @Inject constructor(
                         saveTrackToServer(
                             SAVE_TRACK_ON_SERVER_QUERY, SaveTrackRequest(
                                 it.token, beginsAt = it.beginsAt, time = it.time,
-                                distance = it.distance, points = it.points))} }, {}))
+                                distance = it.distance, points = it.points
+                            )
+                        )
+                    }
+                }, {})
+        )
     }
 
     private fun insertTrack(dataBaseTrack: DataBaseTrack) {
@@ -119,7 +136,8 @@ class MainViewModel @Inject constructor(
             sqLiteRepository.insertTrack(dataBaseTrack)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe())
+                .subscribe()
+        )
     }
 
     fun getAllTracksFromServer(query: String, request: GetAllTracksRequest) {
@@ -130,8 +148,7 @@ class MainViewModel @Inject constructor(
                 .subscribe({ getAllTracksResponse ->
                     _recyclerViewTrackList.value = mapToRecyclerViewTrackList(getAllTracksResponse)
                     networkTracksList = getAllTracksResponse.tracks
-                }, {})
-        )
+                }, {}))
     }
 
     fun getAllTracksFromDataBase() {
@@ -139,8 +156,11 @@ class MainViewModel @Inject constructor(
             sqLiteRepository.getAllTracks()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _trackListFromDataBase.value = mapToRecyclerViewTrackList(it) }, {})
-        )
+                .subscribe({
+                    _recyclerViewTrackList.value = mapToRecyclerViewTrackList(it)
+                    _trackListFromDataBase.value = mapToRecyclerViewTrackList(it)
+                    dataBaseList = it
+                }, {}))
     }
 
     fun saveServerTracksToDataBase() {
@@ -179,9 +199,10 @@ class MainViewModel @Inject constructor(
                 RecyclerViewTrack(
                     simpleDateFormat.format(date),
                     response.tracks[index].distance.toString(),
-                    joggingTime
-                )
-            )
+                    joggingTime, startLongitude = dataBaseList?.get(index)?.startLongitude ?: 0.0,
+                    startLatitude = dataBaseList?.get(index)?.startLatitude ?: 0.0,
+                    finishLongitude = dataBaseList?.get(index)?.finishLongitude ?: 0.0,
+                    finishLatitude = dataBaseList?.get(index)?.finishLatitude ?: 0.0))
         }
 
         return trackList
@@ -215,9 +236,7 @@ class MainViewModel @Inject constructor(
                 RecyclerViewTrack(
                     startTime = simpleDateFormat.format(date),
                     distance = listOfDataBaseTracks[index].distance,
-                    joggingTime = joggingTime
-                )
-            )
+                    joggingTime = joggingTime))
         }
 
         return recyclerViewTrackList
@@ -232,12 +251,22 @@ class MainViewModel @Inject constructor(
                 DataBaseTrack(
                     startTime = networkTracksList[index].beginsAt,
                     distance = networkTracksList[index].distance.toString(),
-                    joggingTime = networkTracksList[index].time.toLong()
-                )
-            )
+                    joggingTime = networkTracksList[index].time.toLong()))
         }
 
         return dataBaseTrackList
+    }
+
+    fun synchronizeWithServer() {
+        getAllTracksFromServer(
+            GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
+                sharedPreferences.getString(
+                    SHARED_PREFERENCES_TOKEN_KEY,
+                    ""
+                ) ?: ""
+            )
+        )
+        getAllSavedTracksFromDataBase()
     }
 
     override fun onCleared() {
