@@ -40,9 +40,10 @@ class NotificationFragment : Fragment(),
     companion object {
         const val NOTIFICATION_DIALOG_TAG = "notificationDialog"
         private const val PENDING_INTENT_REQUEST_CODE = 0
-        private const val NOTIFICATION_TITLE = "Уведомление"
+        private const val NOTIFICATION_TITLE = "Your Health"
         private const val NOTIFICATION_TEXT = "Пожалуйста, начните тренировку!" +
                 " В здоровом теле здоровый дух!"
+        const val JOGGING_FRAGMENT_EXTRA_KEY = "JoggingFragment"
     }
 
     private val CHANNEL_ID = "channelID"
@@ -73,22 +74,24 @@ class NotificationFragment : Fragment(),
         initRecyclerView()
         createNotificationChannel()
 
-//        val intent = Intent(requireContext(), MainActivity::class.java)
-//        val pendingIntent = TaskStackBuilder.create(requireContext()).run {
-//            addNextIntentWithParentStack(intent)
-//            getPendingIntent(PENDING_INTENT_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT)
-//        }
-//
-//        val notification = NotificationCompat.Builder(requireContext(), CHANNEL_ID)
-//            .setContentTitle(NOTIFICATION_TITLE)
-//            .setSmallIcon(R.id.icon)
-//            .setContentText(NOTIFICATION_TEXT)
-//            .setPriority(NotificationCompat.PRIORITY_HIGH)
-//            .setContentIntent(pendingIntent)
-//            .build()
-//
-//        val notificationManager = NotificationManagerCompat.from(requireContext())
-//        notificationManager.notify(NOTIFICATION_ID, notification)
+        val intent = Intent(requireContext(), MainActivity::class.java)
+        intent.putExtra(JOGGING_FRAGMENT_EXTRA_KEY, true)
+        val pendingIntent = TaskStackBuilder.create(requireContext()).run {
+            addNextIntentWithParentStack(intent)
+            getPendingIntent(PENDING_INTENT_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
+        val notification = NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+            .setContentTitle(NOTIFICATION_TITLE)
+            .setSmallIcon(R.id.icon)
+            .setContentText(NOTIFICATION_TEXT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        val notificationManager = NotificationManagerCompat.from(requireContext())
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
     private fun createNotificationChannel() {

@@ -22,7 +22,7 @@
     <string name="fragment_notification_dialog_choose_time_label">Выбрать время</string>
     <string name="fragment_notification_dialog_create_notification_label">Создать</string>
     <string name="fragment_notification_dialog_notification_edittext_hint_label">
-        Пожалуйста, введите текст уведомления.</string>
+        Пожалуйста, введите текст \nуведомления.</string>
 
     <string name="fragment_jogging_start_label">Старт</string>
     <string name="fragment_jogging_finish_label">Финиш</string>

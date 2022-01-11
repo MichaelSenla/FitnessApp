@@ -2,6 +2,7 @@ package com.senla.fitnessapp.presentation.track
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.databinding.FragmentTrackBinding
 import com.senla.fitnessapp.presentation.entry.EntryFragment
@@ -102,18 +104,18 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
         val locationCoordinates = arguments?.getDoubleArray(LOCATION_COORDINATES_EXTRA_KEY)
         val startCoordinates = LatLng(
             locationCoordinates!!.component1(),
-            locationCoordinates.component2()
-        )
+            locationCoordinates.component2())
+        val finishCoordinates = LatLng(
+            locationCoordinates.component3(),
+            locationCoordinates.component4())
 
         map!!.addMarker(MarkerOptions().position(startCoordinates).title(START_MARKER_LABEL))
         map!!.addMarker(
-            MarkerOptions().position(
-                LatLng(
-                    locationCoordinates.component3(),
-                    locationCoordinates.component4()
-                )
-            ).title(FINISH_MARKER_LABEL)
-        )
+            MarkerOptions().position(finishCoordinates).title(FINISH_MARKER_LABEL))
+
+        val polyline = PolylineOptions().add(startCoordinates, finishCoordinates)
+        map!!.addPolyline(polyline)
+
         map!!.animateCamera(CameraUpdateFactory.newLatLngZoom(startCoordinates, 20F))
     }
 }

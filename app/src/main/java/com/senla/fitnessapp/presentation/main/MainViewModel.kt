@@ -2,6 +2,7 @@ package com.senla.fitnessapp.presentation.main
 
 import android.app.Application
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -123,12 +124,9 @@ class MainViewModel @Inject constructor(
                         saveTrackToServer(
                             SAVE_TRACK_ON_SERVER_QUERY, SaveTrackRequest(
                                 it.token, beginsAt = it.beginsAt, time = it.time,
-                                distance = it.distance, points = it.points
-                            )
-                        )
+                                distance = it.distance, points = it.points))
                     }
-                }, {})
-        )
+                }, {}))
     }
 
     private fun insertTrack(dataBaseTrack: DataBaseTrack) {
@@ -157,7 +155,6 @@ class MainViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    _recyclerViewTrackList.value = mapToRecyclerViewTrackList(it)
                     _trackListFromDataBase.value = mapToRecyclerViewTrackList(it)
                     dataBaseList = it
                 }, {}))
@@ -177,6 +174,7 @@ class MainViewModel @Inject constructor(
     private fun mapToRecyclerViewTrackList(response: GetAllTracksResponse):
             List<RecyclerViewTrack> {
         val trackList = mutableListOf<RecyclerViewTrack>()
+
         response.tracks.forEachIndexed { index, _ ->
             val simpleDateFormat = SimpleDateFormat(TIME_FORMAT, Locale.getDefault())
             val date = Date(response.tracks[index].beginsAt)
@@ -262,16 +260,12 @@ class MainViewModel @Inject constructor(
             GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
                 sharedPreferences.getString(
                     SHARED_PREFERENCES_TOKEN_KEY,
-                    ""
-                ) ?: ""
-            )
-        )
+                    "") ?: ""))
         getAllSavedTracksFromDataBase()
     }
 
     override fun onCleared() {
         compositeDisposable?.clear()
-        compositeDisposable = null
 
         super.onCleared()
     }

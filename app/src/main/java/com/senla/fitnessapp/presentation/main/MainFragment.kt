@@ -140,14 +140,14 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
         startLatitude: Double,
         finishLongitude: Double,
         finishLatitude: Double,
-        startTime: String,
+        joggingTime: String,
         distance: String
     ) {
         val bundle = Bundle()
         bundle.putDoubleArray(
             LOCATION_COORDINATES_EXTRA_KEY, doubleArrayOf(startLongitude, startLatitude,
         finishLongitude, finishLatitude))
-        bundle.putString(TRACK_JOGGING_TIME_EXTRA_KEY, startTime)
+        bundle.putString(TRACK_JOGGING_TIME_EXTRA_KEY, joggingTime)
         bundle.putString(TRACK_DISTANCE_EXTRA_KEY, distance)
         val fragment = TrackFragment()
         fragment.arguments = bundle

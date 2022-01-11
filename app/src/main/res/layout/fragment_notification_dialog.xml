@@ -47,6 +47,7 @@
         android:gravity="start|top"
         android:hint="@string/fragment_notification_dialog_notification_edittext_hint_label"
         android:inputType="text"
+        android:textSize="@dimen/small_text_size"
         android:padding="@dimen/small_padding"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

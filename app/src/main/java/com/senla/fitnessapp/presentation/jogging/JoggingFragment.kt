@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -69,7 +70,6 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var startLongitude: Double = 0.0
     private var startLatitude: Double = 0.0
     private var point: Point? = null
-    private var fusedLocationClient: FusedLocationProviderClient? = null
 
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
@@ -129,18 +129,13 @@ class JoggingFragment : Fragment(), GpsLocation {
 
         requireContext().registerReceiver(updateTime, IntentFilter(TimerService.TIMER_UPDATED))
         serviceIntent = Intent(requireContext(), TimerService::class.java)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
     }
 
     @SuppressLint("MissingPermission")
     private fun getStartLocation() {
-        fusedLocationClient?.lastLocation
-            ?.addOnSuccessListener { location ->
-                startLongitude = location.longitude
-                startLatitude = location.latitude
-            }?.addOnFailureListener {
-                Toast.makeText(requireContext(), LOCATION_IS_EMPTY_ERROR, Toast.LENGTH_SHORT).show()
-            }
+        val location = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        startLongitude = location?.longitude ?: 0.0
+        startLatitude = location?.latitude ?: 0.0
     }
 
     private fun checkPermissions() {
