@@ -1,20 +1,31 @@
 package com.senla.fitnessapp.presentation.notification.notificationDialog
 
+import android.app.AlarmManager
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.DatePicker
 import android.widget.TimePicker
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import com.senla.fitnessapp.R
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationDialogBinding
+import com.senla.fitnessapp.presentation.notification.NotificationFragment
+import com.senla.fitnessapp.presentation.notification.broadcast.NotificationReceiver
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
 import java.util.*
 
 @AndroidEntryPoint
@@ -26,6 +37,7 @@ class NotificationDialogFragment(
     TimePickerDialog.OnTimeSetListener {
 
     companion object {
+        const val PENDING_INTENT_REQUEST_CODE = 0
         private const val EDITTEXT_IS_EMPTY_WARNING = "Пожалуйста, заполните даннные."
         private const val CREATE_NOTIFICATION_LABEL = "Создать"
         private const val SAVE_NOTIFICATION_LABEL = "Сохранить"
@@ -52,6 +64,7 @@ class NotificationDialogFragment(
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (notificationId != null) {
             viewModel.getNotificationById(notificationId)
@@ -89,12 +102,14 @@ class NotificationDialogFragment(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun setCreateNotificationButtonListener() {
         with(binding) {
             btnCreateNotification.setOnClickListener {
                 if (notificationId == null) {
                     if (validationDone()) {
                         viewModel.createNotification(binding)
+                        setAlarmManager()
                     } else {
                         Toast.makeText(
                             requireContext(), EDITTEXT_IS_EMPTY_WARNING, Toast.LENGTH_SHORT
@@ -119,6 +134,7 @@ class NotificationDialogFragment(
                 savedYear != 0 && savedMinute != 0 && savedHour != 0)
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun setAllButtonsListeners() {
         setChooseDayButtonListener()
         setChooseTimeButtonListener()
@@ -129,11 +145,36 @@ class NotificationDialogFragment(
         savedDay = dayOfMonth
         savedMonth = month
         savedYear = year
+
+        binding.btnChooseDay.text =
+            getString(R.string.fragment_notification_dialog_chosen_day_pattern_text)
+                .format(savedDay, savedMonth, savedYear)
     }
 
     override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
         savedHour = hourOfDay
         savedMinute = minute
+
+        binding.btnChooseTime.text =
+            getString(R.string.fragment_notification_dialog_chosen_time_pattern_text)
+                .format(savedHour, savedMinute)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun setAlarmManager() {
+        val intent = Intent(requireContext(), NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(requireContext(),
+           PENDING_INTENT_REQUEST_CODE, intent, PendingIntent.FLAG_IMMUTABLE
+                    or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE)
+                as AlarmManager
+        val calendar = Calendar.getInstance()
+        calendar.set(savedYear, savedMonth, savedDay, savedHour, savedMinute)
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis, pendingIntent)
+        Log.e("TIME_CHECKING", "${calendar.timeInMillis}")
     }
 
     override fun onDestroyView() {

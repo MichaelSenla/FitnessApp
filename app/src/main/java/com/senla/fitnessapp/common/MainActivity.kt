@@ -5,21 +5,11 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.presentation.jogging.JoggingFragment
-import com.senla.fitnessapp.presentation.notification.NotificationFragment.Companion.JOGGING_FRAGMENT_EXTRA_KEY
+import com.senla.fitnessapp.presentation.notification.broadcast.NotificationReceiver.Companion.JOGGING_FRAGMENT_EXTRA_KEY
 import com.senla.fitnessapp.presentation.splash.SplashFragment
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.rxjava3.core.Completable.error
-import io.reactivex.rxjava3.core.Flowable.error
-import io.reactivex.rxjava3.core.Maybe.error
-import io.reactivex.rxjava3.core.Observable.error
-import io.reactivex.rxjava3.core.Single.error
 import io.reactivex.rxjava3.exceptions.UndeliverableException
-import io.reactivex.rxjava3.internal.disposables.EmptyDisposable.error
-import io.reactivex.rxjava3.internal.subscriptions.EmptySubscription.error
-import io.reactivex.rxjava3.internal.util.NotificationLite.error
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
-import retrofit2.Response.error
-import retrofit2.adapter.rxjava3.Result.error
 
 @AndroidEntryPoint
 class MainActivity: AppCompatActivity() {
