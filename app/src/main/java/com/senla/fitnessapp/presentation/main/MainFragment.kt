@@ -9,15 +9,18 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
 import com.senla.fitnessapp.data.network.models.getAllTracks.GetAllTracksRequest
 import com.senla.fitnessapp.databinding.FragmentMainBinding
+import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.entry.EntryFragment.Companion.FIRST_APP_USE_EXTRA_KEY
 import com.senla.fitnessapp.presentation.jogging.JoggingFragment
 import com.senla.fitnessapp.presentation.main.models.RecyclerViewTrack
 import com.senla.fitnessapp.presentation.main.recyclerView.TrackAdapter
+import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setMenuExitButton
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
 import com.senla.fitnessapp.presentation.notification.NotificationFragment
 import com.senla.fitnessapp.presentation.track.TrackFragment
@@ -32,6 +35,7 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
         const val LOCATION_COORDINATES_EXTRA_KEY = "Location coordinates"
         const val TRACK_JOGGING_TIME_EXTRA_KEY = "TRACK_START_TIME"
         const val TRACK_DISTANCE_EXTRA_KEY = "DISTANCE"
+        const val SHARED_PREFERENCES_TOKEN_KEY_DEFAULT_VALUE = ""
     }
 
     private var _binding: FragmentMainBinding? = null
@@ -57,7 +61,8 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
         setMainFragmentListeners()
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemNotification,
-            NotificationFragment(), sharedPreferences!!)
+            NotificationFragment()
+        )
 
         initRecyclerView()
 
@@ -66,7 +71,9 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
             viewModel.getAllTracksFromServer(
                 GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
                     sharedPreferences!!.getString(
-                        SHARED_PREFERENCES_TOKEN_KEY, "") ?: ""))
+                        SHARED_PREFERENCES_TOKEN_KEY,
+                        SHARED_PREFERENCES_TOKEN_KEY_DEFAULT_VALUE)
+                        ?: SHARED_PREFERENCES_TOKEN_KEY_DEFAULT_VALUE))
         } else {
             viewModel.getAllTracksFromDataBase()
         }
@@ -77,13 +84,22 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
         trackAdapter?.onTrackAdapterItemClickListener = this
         with(binding.recyclerView) {
             layoutManager = LinearLayoutManager(requireContext())
+            addItemDecoration(
+                DividerItemDecoration(
+                    requireContext(),
+                    LinearLayoutManager.VERTICAL))
             adapter = trackAdapter
         }
     }
 
     private fun setMainFragmentListeners() {
-        binding.fab.setOnClickListener {
-            navigateToFragment(JoggingFragment())
+        with(binding) {
+            navigationFab.setOnClickListener {
+                navigateToFragment(JoggingFragment())
+            }
+            tvLogOut.setOnClickListener {
+                setMenuExitButton(navigateToFragment, EntryFragment(), sharedPreferences!!)
+            }
         }
         setPullToRefreshListener()
     }
@@ -112,15 +128,20 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
     override fun onStart() {
         super.onStart()
 
+        if (arguments?.getBoolean(FIRST_APP_USE_EXTRA_KEY) != true) {
+            viewModel.synchronizeWithServer()
+        }
         networkTrackListObserver = Observer { recyclerViewTrackList ->
             if (arguments?.getBoolean(FIRST_APP_USE_EXTRA_KEY) == true) {
                 viewModel.saveServerTracksToDataBase()
             }
-            trackAdapter?.submitList(recyclerViewTrackList.sortedByDescending { it.startTime })
+            trackAdapter?.submitList(recyclerViewTrackList
+                .sortedByDescending { it.startTime })
             binding.progressBar.isVisible = false
         }
         dataBaseTrackListObserver = Observer { recyclerViewTrackList ->
-            trackAdapter?.submitList(recyclerViewTrackList.sortedByDescending { it.startTime })
+            trackAdapter?.submitList(recyclerViewTrackList
+                .sortedByDescending { it.startTime })
             binding.progressBar.isVisible = false
         }
 
@@ -145,8 +166,11 @@ class MainFragment : Fragment(), TrackAdapter.OnTrackAdapterItemClick {
     ) {
         val bundle = Bundle()
         bundle.putDoubleArray(
-            LOCATION_COORDINATES_EXTRA_KEY, doubleArrayOf(startLongitude, startLatitude,
-        finishLongitude, finishLatitude))
+            LOCATION_COORDINATES_EXTRA_KEY, doubleArrayOf(
+                startLongitude, startLatitude,
+                finishLongitude, finishLatitude
+            )
+        )
         bundle.putString(TRACK_JOGGING_TIME_EXTRA_KEY, joggingTime)
         bundle.putString(TRACK_DISTANCE_EXTRA_KEY, distance)
         val fragment = TrackFragment()

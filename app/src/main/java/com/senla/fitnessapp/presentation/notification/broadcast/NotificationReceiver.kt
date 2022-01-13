@@ -23,7 +23,7 @@ class NotificationReceiver : BroadcastReceiver() {
         private const val NOTIFICATION_TITLE = "Your Health"
         private const val NOTIFICATION_TEXT = "Пожалуйста, начните тренировку!" +
                 " В здоровом теле здоровый дух!"
-        private const val CHANNEL_ID = "channelID"
+        private const val CHANNEL_ID = "CHANNEL_ID"
         private const val CHANNEL_NAME = "channelName"
         private const val NOTIFICATION_ID = 0
     }
@@ -38,9 +38,11 @@ class NotificationReceiver : BroadcastReceiver() {
     }
 
     private fun createNotificationChannel(context: Context) {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH).apply {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID, CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
                 lightColor = Color.GREEN
                 enableLights(true)
             }
@@ -56,8 +58,10 @@ class NotificationReceiver : BroadcastReceiver() {
         notificationIntent.putExtra(JOGGING_FRAGMENT_EXTRA_KEY, true)
         val pendingIntent = TaskStackBuilder.create(context).run {
             addNextIntentWithParentStack(notificationIntent)
-            getPendingIntent(PENDING_INTENT_REQUEST_CODE,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            getPendingIntent(
+                PENDING_INTENT_REQUEST_CODE,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
         }
 
         return pendingIntent

@@ -2,7 +2,6 @@ package com.senla.fitnessapp.presentation.main
 
 import android.app.Application
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -26,7 +25,6 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.logging.Handler
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,6 +44,12 @@ class MainViewModel @Inject constructor(
         private const val CONVERT_TO_SECONDS_NUMBER_SCALE = 60
         private const val CONVERT_TO_MINUTES_NUMBER_SCALE = 60
         private const val SAVE_TRACK_ON_SERVER_QUERY = "save"
+        private const val IS_TRACK_ON_SERVER_DEFAULT_VALUE = "false"
+        private const val SHARED_PREFERENCES_TOKEN_DEFAULT_VALUE = ""
+        private const val START_LONGITUDE_DEFAULT_VALUE = 37.618423
+        private const val START_LATITUDE_DEFAULT_VALUE = 55.751244
+        private const val FINISH_LONGITUDE_DEFAULT_VALUE = 37.618423
+        private const val FINISH_LATITUDE_DEFAULT_VALUE = 55.751244
     }
 
     private var compositeDisposable: CompositeDisposable? = CompositeDisposable()
@@ -83,7 +87,7 @@ class MainViewModel @Inject constructor(
     private fun mapToNetworkTracks(list: List<DataBaseSavedTrack>): List<SaveTrackRequest> {
         val networkList = mutableListOf<SaveTrackRequest>()
 
-        val filteredList = list.filter { it.isTrackOnServer == "false" }
+        val filteredList = list.filter { it.isTrackOnServer == IS_TRACK_ON_SERVER_DEFAULT_VALUE }
 
         filteredList.forEachIndexed { index, dataBaseSavedTrack ->
             val pointsList = listOf(
@@ -99,7 +103,8 @@ class MainViewModel @Inject constructor(
             networkList.add(
                 SaveTrackRequest(
                     sharedPreferences
-                        .getString(SHARED_PREFERENCES_TOKEN_KEY, "")!!,
+                        .getString(SHARED_PREFERENCES_TOKEN_KEY,
+                            SHARED_PREFERENCES_TOKEN_DEFAULT_VALUE)!!,
                     beginsAt = filteredList[index].startTime,
                     time = filteredList[index].joggingTime,
                     distance = filteredList[index].distance.toInt(),
@@ -124,9 +129,12 @@ class MainViewModel @Inject constructor(
                         saveTrackToServer(
                             SAVE_TRACK_ON_SERVER_QUERY, SaveTrackRequest(
                                 it.token, beginsAt = it.beginsAt, time = it.time,
-                                distance = it.distance, points = it.points))
+                                distance = it.distance, points = it.points
+                            )
+                        )
                     }
-                }, {}))
+                }, {})
+        )
     }
 
     private fun insertTrack(dataBaseTrack: DataBaseTrack) {
@@ -146,7 +154,8 @@ class MainViewModel @Inject constructor(
                 .subscribe({ getAllTracksResponse ->
                     _recyclerViewTrackList.value = mapToRecyclerViewTrackList(getAllTracksResponse)
                     networkTracksList = getAllTracksResponse.tracks
-                }, {}))
+                }, {})
+        )
     }
 
     fun getAllTracksFromDataBase() {
@@ -157,7 +166,8 @@ class MainViewModel @Inject constructor(
                 .subscribe({
                     _trackListFromDataBase.value = mapToRecyclerViewTrackList(it)
                     dataBaseList = it
-                }, {}))
+                }, {})
+        )
     }
 
     fun saveServerTracksToDataBase() {
@@ -197,10 +207,14 @@ class MainViewModel @Inject constructor(
                 RecyclerViewTrack(
                     simpleDateFormat.format(date),
                     response.tracks[index].distance.toString(),
-                    joggingTime, startLongitude = dataBaseList?.get(index)?.startLongitude ?: 0.0,
-                    startLatitude = dataBaseList?.get(index)?.startLatitude ?: 0.0,
-                    finishLongitude = dataBaseList?.get(index)?.finishLongitude ?: 0.0,
-                    finishLatitude = dataBaseList?.get(index)?.finishLatitude ?: 0.0))
+                    joggingTime, startLongitude = dataBaseList?.get(index)?.startLongitude
+                        ?: START_LONGITUDE_DEFAULT_VALUE,
+                    startLatitude = dataBaseList?.get(index)?.startLatitude
+                        ?: START_LATITUDE_DEFAULT_VALUE,
+                    finishLongitude = dataBaseList?.get(index)?.finishLongitude
+                        ?: FINISH_LONGITUDE_DEFAULT_VALUE,
+                    finishLatitude = dataBaseList?.get(index)?.finishLatitude
+                        ?: FINISH_LATITUDE_DEFAULT_VALUE))
         }
 
         return trackList
@@ -234,7 +248,9 @@ class MainViewModel @Inject constructor(
                 RecyclerViewTrack(
                     startTime = simpleDateFormat.format(date),
                     distance = listOfDataBaseTracks[index].distance,
-                    joggingTime = joggingTime))
+                    joggingTime = joggingTime
+                )
+            )
         }
 
         return recyclerViewTrackList
@@ -249,7 +265,9 @@ class MainViewModel @Inject constructor(
                 DataBaseTrack(
                     startTime = networkTracksList[index].beginsAt,
                     distance = networkTracksList[index].distance.toString(),
-                    joggingTime = networkTracksList[index].time.toLong()))
+                    joggingTime = networkTracksList[index].time.toLong()
+                )
+            )
         }
 
         return dataBaseTrackList
@@ -260,7 +278,10 @@ class MainViewModel @Inject constructor(
             GET_ALL_TRACKS_FROM_SERVER_QUERY, GetAllTracksRequest(
                 sharedPreferences.getString(
                     SHARED_PREFERENCES_TOKEN_KEY,
-                    "") ?: ""))
+                    SHARED_PREFERENCES_TOKEN_DEFAULT_VALUE
+                ) ?: SHARED_PREFERENCES_TOKEN_DEFAULT_VALUE
+            )
+        )
         getAllSavedTracksFromDataBase()
     }
 

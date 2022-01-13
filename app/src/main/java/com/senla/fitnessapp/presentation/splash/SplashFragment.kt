@@ -14,7 +14,11 @@ import com.senla.fitnessapp.presentation.entry.EntryFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SplashFragment: Fragment() {
+class SplashFragment : Fragment() {
+
+    companion object {
+        private const val NAVIGATION_DELAY = 3000L
+    }
 
     private var _binding: FragmentSplashBinding? = null
     private val binding get() = _binding!!
@@ -25,21 +29,21 @@ class SplashFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSplashBinding.inflate(inflater,container,false)
+        _binding = FragmentSplashBinding.inflate(inflater, container, false)
 
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-     navigateToEntryFragment()
-     splashViewModel.rotateIcon(binding.imageIcon)
+        navigateToEntryFragment()
+        splashViewModel.rotateIcon(binding.imageIcon)
     }
 
-    private fun navigateToEntryFragment(){
+    private fun navigateToEntryFragment() {
         Handler(Looper.getMainLooper()).postDelayed({
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, EntryFragment()).commit()
-        }, 3000)
+        }, NAVIGATION_DELAY)
     }
 
     override fun onDestroyView() {

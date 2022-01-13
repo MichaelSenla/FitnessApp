@@ -12,6 +12,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
@@ -22,7 +23,7 @@ import com.senla.fitnessapp.presentation.main.MainFragment
 import com.senla.fitnessapp.presentation.main.MainFragment.Companion.LOCATION_COORDINATES_EXTRA_KEY
 import com.senla.fitnessapp.presentation.main.MainFragment.Companion.TRACK_DISTANCE_EXTRA_KEY
 import com.senla.fitnessapp.presentation.main.MainFragment.Companion.TRACK_JOGGING_TIME_EXTRA_KEY
-import com.senla.fitnessapp.presentation.navigation.SideNavigation
+import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setMenuExitButton
 import com.senla.fitnessapp.presentation.notification.NotificationFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -35,6 +36,9 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
         private const val FINISH_MARKER_LABEL = "Финиш"
         private const val DISTANCE_TEXT = "Дистанция: \n"
         private const val METERS_TEXT = " метров"
+        private const val LEVEL_OF_ZOOM_VALUE = 20F
+        private const val ZERO_LATITUDE_VALUE = 0.0
+        private const val ZERO_LONGITUDE_VALUE = 0.0
         var mapFragment: SupportMapFragment? = null
         var map: GoogleMap? = null
     }
@@ -42,6 +46,8 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentTrackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: TrackViewModel by viewModels()
+    private var startLatLng: LatLng? = LatLng(55.7305, 37.6377)
+    private var finishLatLng: LatLng? = LatLng(55.7305, 37.6377)
 
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
@@ -59,9 +65,12 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
         with(binding) {
             tvJoggingTime.text = arguments?.getString(TRACK_JOGGING_TIME_EXTRA_KEY)
             tvJoggingDistance.text = StringBuilder(DISTANCE_TEXT).also {
-                    it.append(arguments?.getString(TRACK_DISTANCE_EXTRA_KEY))
-                    it.append(METERS_TEXT)
-                }
+                it.append(arguments?.getString(TRACK_DISTANCE_EXTRA_KEY))
+                it.append(METERS_TEXT)
+            }
+            tvLogOut.setOnClickListener {
+                setMenuExitButton(navigateToFragment, EntryFragment(), sharedPreferences!!)
+            }
         }
         setNavigationMenuButtons()
         setMap()
@@ -78,10 +87,6 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
             when (it.itemId) {
                 R.id.menuItemNotification -> navigateToFragment(NotificationFragment())
                 R.id.menuItemMain -> navigateToFragment(MainFragment())
-                R.id.menuItemExit -> SideNavigation.setMenuExitButton(
-                    navigateToFragment, EntryFragment(),
-                    sharedPreferences!!
-                )
             }
             true
         }
@@ -102,20 +107,30 @@ class TrackFragment : Fragment(), OnMapReadyCallback {
         map = googleMap
 
         val locationCoordinates = arguments?.getDoubleArray(LOCATION_COORDINATES_EXTRA_KEY)
-        val startCoordinates = LatLng(
-            locationCoordinates!!.component1(),
-            locationCoordinates.component2())
-        val finishCoordinates = LatLng(
-            locationCoordinates.component3(),
-            locationCoordinates.component4())
+        var startCoordinates = LatLng(locationCoordinates!!.component2(),
+            locationCoordinates.component1())
 
-        map!!.addMarker(MarkerOptions().position(startCoordinates).title(START_MARKER_LABEL))
+        if (startCoordinates == LatLng(ZERO_LATITUDE_VALUE, ZERO_LONGITUDE_VALUE))
+            startCoordinates = startLatLng!!
+
+        var finishCoordinates = LatLng(
+            locationCoordinates.component4(),
+            locationCoordinates.component3())
+
+        if (finishCoordinates == LatLng(ZERO_LATITUDE_VALUE, ZERO_LONGITUDE_VALUE))
+            finishCoordinates = finishLatLng!!
+
         map!!.addMarker(
-            MarkerOptions().position(finishCoordinates).title(FINISH_MARKER_LABEL))
+            MarkerOptions().position(startCoordinates).title(START_MARKER_LABEL)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+        )
+        map!!.addMarker(
+            MarkerOptions().position(finishCoordinates).title(FINISH_MARKER_LABEL)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
 
-        val polyline = PolylineOptions().add(startCoordinates, finishCoordinates)
+        val polyline = PolylineOptions().add(startLatLng, finishLatLng)
         map!!.addPolyline(polyline)
 
-        map!!.animateCamera(CameraUpdateFactory.newLatLngZoom(startCoordinates, 20F))
+        map!!.animateCamera(CameraUpdateFactory.newLatLngZoom(startCoordinates, LEVEL_OF_ZOOM_VALUE))
     }
 }

@@ -31,6 +31,8 @@ class SQLiteHelper(context: Context):
         private const val START_LATITUDE = "Start_latitude"
         private const val FINISH_LONGITUDE = "Finish_longitude"
         private const val FINISH_LATITUDE = "Finish_latitude"
+        private const val IS_TRACK_ON_THE_SERVER_DEFAULT_VALUE = "false"
+        private const val IS_TRACK_ON_THE_SERVER_TRUE_VALUE = "true"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -209,10 +211,10 @@ class SQLiteHelper(context: Context):
         var startTime: Long
         var distance: String
         var joggingTime: Long
-        var startLongitude: Double
-        var startLatitude: Double
-        var finishLongitude: Double
-        var finishLatitude: Double
+        var startLongitude = 37.6377
+        var startLatitude = 55.7305
+        var finishLongitude = 37.6377
+        var finishLatitude = 55.7305
 
         if(cursor.moveToFirst()) {
             do {
@@ -246,7 +248,7 @@ class SQLiteHelper(context: Context):
         contentValues.put(START_TIME, dataBaseSavedTrack.startTime)
         contentValues.put(DISTANCE, dataBaseSavedTrack.distance)
         contentValues.put(JOGGING_TIME, dataBaseSavedTrack.joggingTime)
-        contentValues.put(IS_TRACK_ON_SERVER, "false")
+        contentValues.put(IS_TRACK_ON_SERVER, IS_TRACK_ON_THE_SERVER_DEFAULT_VALUE)
         contentValues.put(START_LONGITUDE, dataBaseSavedTrack.startLongitude)
         contentValues.put(START_LATITUDE, dataBaseSavedTrack.startLatitude)
         contentValues.put(FINISH_LONGITUDE, dataBaseSavedTrack.finishLongitude)
@@ -313,7 +315,7 @@ class SQLiteHelper(context: Context):
         val database = this.writableDatabase
 
         val contentValues = ContentValues()
-        contentValues.put(IS_TRACK_ON_SERVER, "true")
+        contentValues.put(IS_TRACK_ON_SERVER, IS_TRACK_ON_THE_SERVER_TRUE_VALUE)
 
         val success = database.update(
             TABLE_UNSENT_TRACK, contentValues, "id=" + savedTrack.id, null)

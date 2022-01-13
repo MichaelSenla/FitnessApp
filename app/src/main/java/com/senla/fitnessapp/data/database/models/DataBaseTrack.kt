@@ -7,10 +7,10 @@ data class DataBaseTrack(
     var startTime: Long = 0,
     var distance: String = "",
     var joggingTime: Long = 0,
-    var startLongitude: Double = 0.0,
-    var startLatitude: Double = 0.0,
-    var finishLongitude: Double = 0.0,
-    var finishLatitude: Double = 0.0
+    var startLongitude: Double = 37.6377,
+    var startLatitude: Double = 55.7305,
+    var finishLongitude: Double = 37.6377,
+    var finishLatitude: Double = 55.7305
 ) {
     companion object {
         private const val ID_BOUND = 100000

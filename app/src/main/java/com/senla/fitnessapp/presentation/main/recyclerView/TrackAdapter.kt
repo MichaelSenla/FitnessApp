@@ -15,8 +15,7 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
     class ItemHolder(
         private val binding: TrackListItemBinding,
         private val onTrackAdapterItemClick: OnTrackAdapterItemClick?
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(recyclerViewTrack: RecyclerViewTrack) {
             with(binding) {
@@ -57,8 +56,7 @@ class TrackAdapter : ListAdapter<RecyclerViewTrack, TrackAdapter.ItemHolder>(Ite
 
         return ItemHolder(
             TrackListItemBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            ),
+                LayoutInflater.from(parent.context), parent, false),
             onTrackAdapterItemClickListener
         )
     }

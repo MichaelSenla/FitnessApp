@@ -10,6 +10,9 @@ class TimerService : Service() {
     companion object {
         const val TIMER_UPDATED = "timedUpdated"
         const val TIME_EXTRA = "timeExtra"
+        const val TIME_DEFAULT_VALUE = 0.0
+        const val TIME_DELAY = 0L
+        const val TIME_PERIOD = 100L
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -17,8 +20,8 @@ class TimerService : Service() {
     private val timer = Timer()
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val time = intent.getDoubleExtra(TIME_EXTRA, 0.0)
-        timer.scheduleAtFixedRate(TimeTask(time), 0, 100)
+        val time = intent.getDoubleExtra(TIME_EXTRA, TIME_DEFAULT_VALUE)
+        timer.scheduleAtFixedRate(TimeTask(time), TIME_DELAY, TIME_PERIOD)
         return START_NOT_STICKY
     }
 

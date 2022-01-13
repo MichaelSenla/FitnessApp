@@ -4,8 +4,8 @@ data class RecyclerViewTrack(
     val startTime: String,
     val distance: String,
     val joggingTime: String,
-    val startLongitude: Double = 0.0,
-    val startLatitude: Double = 0.0,
-    val finishLongitude: Double = 0.0,
-    val finishLatitude: Double = 0.0
+    val startLongitude: Double = 37.6377,
+    val startLatitude: Double = 55.7305,
+    val finishLongitude: Double = 55.7305,
+    val finishLatitude: Double = 37.6377
 )

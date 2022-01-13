@@ -22,10 +22,8 @@ import androidx.lifecycle.Observer
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationDialogBinding
-import com.senla.fitnessapp.presentation.notification.NotificationFragment
 import com.senla.fitnessapp.presentation.notification.broadcast.NotificationReceiver
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
 import java.util.*
 
 @AndroidEntryPoint
@@ -41,11 +39,12 @@ class NotificationDialogFragment(
         private const val EDITTEXT_IS_EMPTY_WARNING = "Пожалуйста, заполните даннные."
         private const val CREATE_NOTIFICATION_LABEL = "Создать"
         private const val SAVE_NOTIFICATION_LABEL = "Сохранить"
+        private const val IMPOSSIBLE_VALUE = 0
         var savedDay = 0
-        var savedMonth = 0
+        var savedMonth: Int? = null
         var savedYear = 0
-        var savedHour = 0
-        var savedMinute = 0
+        var savedHour: Int? = null
+        var savedMinute: Int? = null
     }
 
     private var _binding: FragmentNotificationDialogBinding? = null
@@ -130,8 +129,10 @@ class NotificationDialogFragment(
     }
 
     private fun validationDone(): Boolean {
-        return (binding.etNotificationText.text.toString().isNotEmpty() && savedDay != 0 &&
-                savedYear != 0 && savedMinute != 0 && savedHour != 0)
+        return (binding.etNotificationText.text.toString()
+            .isNotEmpty() && savedDay != IMPOSSIBLE_VALUE &&
+                savedMonth != null && savedYear != IMPOSSIBLE_VALUE &&
+                savedMinute != null && savedHour != null)
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -163,17 +164,20 @@ class NotificationDialogFragment(
     @RequiresApi(Build.VERSION_CODES.M)
     private fun setAlarmManager() {
         val intent = Intent(requireContext(), NotificationReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(requireContext(),
-           PENDING_INTENT_REQUEST_CODE, intent, PendingIntent.FLAG_IMMUTABLE
-                    or PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(
+            requireContext(),
+            PENDING_INTENT_REQUEST_CODE, intent, PendingIntent.FLAG_IMMUTABLE
+                    or PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE)
                 as AlarmManager
         val calendar = Calendar.getInstance()
-        calendar.set(savedYear, savedMonth, savedDay, savedHour, savedMinute)
+        calendar.set(savedYear, savedMonth!!, savedDay, savedHour!!, savedMinute!!)
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis, pendingIntent)
+            calendar.timeInMillis, pendingIntent
+        )
         Log.e("TIME_CHECKING", "${calendar.timeInMillis}")
     }
 

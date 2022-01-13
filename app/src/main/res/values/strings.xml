@@ -13,10 +13,13 @@
 
     <string name="fragment_main_open_navigation_label">Открыть</string>
     <string name="fragment_main_close_navigation_label">Закрыть</string>
+    <string name="fragment_main_exit_label">Выход</string>
+
 
     <string name="navigation_drawer_menu_item_main">Главный экран</string>
     <string name="navigation_drawer_menu_item_notification">Напоминания</string>
-    <string name="navigation_drawer_menu_item_exit">Выход</string>
+
+    <string name="fragment_notification_exit_label">Выход</string>
 
     <string name="fragment_notification_dialog_choose_day_label">Выбрать день</string>
     <string name="fragment_notification_dialog_chosen_day_pattern_text">%d.%d.%d</string>
@@ -29,6 +32,8 @@
     <string name="fragment_jogging_start_label">Старт</string>
     <string name="fragment_jogging_finish_label">Финиш</string>
     <string name="fragment_jogging_time_template">00:00:00</string>
+
+    <string name="fragment_track_exit_label">Выход</string>
 
     <string name="layout_popup_window_error_text">Пожалуйста, проверьте интернет соединение.
     </string>

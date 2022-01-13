@@ -23,6 +23,7 @@ class NotificationViewModel @Inject constructor(
         private const val LOG_TAG = "SQLite"
         private const val LOG_DELETED_SUCCESSFULLY = "Notification was deleted"
         private const val LOG_DELETED_UNSUCCESSFULLY = "Error, the notification wasn't deleted"
+        private const val DATABASE_QUERY_FAILED_VALUE = -1
     }
 
     private val _notificationList = MutableLiveData<ArrayList<Notification>>()
@@ -49,7 +50,7 @@ class NotificationViewModel @Inject constructor(
                         value?.remove(notification)
                         value = list!!
                     }
-                    if (it > -1) Log.e(LOG_TAG, LOG_DELETED_SUCCESSFULLY)
+                    if (it > DATABASE_QUERY_FAILED_VALUE) Log.e(LOG_TAG, LOG_DELETED_SUCCESSFULLY)
                     else Log.e(LOG_TAG, LOG_DELETED_UNSUCCESSFULLY)
                 }, {})
         )

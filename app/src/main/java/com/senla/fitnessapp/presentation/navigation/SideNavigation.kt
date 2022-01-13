@@ -3,9 +3,7 @@ package com.senla.fitnessapp.presentation.navigation
 import android.content.SharedPreferences
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationView
-import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants
-import com.senla.fitnessapp.presentation.entry.EntryFragment
 
 class SideNavigation {
 
@@ -13,12 +11,11 @@ class SideNavigation {
 
         fun setNavigationMenuButtons(
             binding: NavigationView, navigation: (Fragment) -> Unit,
-            menuResource: Int, fragment: Fragment, sharedPreferences: SharedPreferences) {
+            menuResource: Int, fragment: Fragment
+        ) {
             binding.setNavigationItemSelectedListener {
                 when (it.itemId) {
                     menuResource -> navigation(fragment)
-                    R.id.menuItemExit -> setMenuExitButton(navigation, EntryFragment(),
-                        sharedPreferences)
                 }
                 true
             }
@@ -26,7 +23,8 @@ class SideNavigation {
 
         fun setMenuExitButton(
             navigation: (Fragment) -> Unit, fragment: Fragment,
-            sharedPreferences: SharedPreferences) {
+            sharedPreferences: SharedPreferences
+        ) {
             navigation(fragment)
 
             val editor = sharedPreferences.edit()

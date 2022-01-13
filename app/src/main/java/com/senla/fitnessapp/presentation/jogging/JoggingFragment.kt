@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -26,8 +25,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.senla.fitnessapp.R
 import com.senla.fitnessapp.common.Constants.SHARED_PREFERENCES_TOKEN_KEY
 import com.senla.fitnessapp.common.Functions.isNetworkAvailable
@@ -42,7 +39,6 @@ import com.senla.fitnessapp.presentation.jogging.location.LocationListener
 import com.senla.fitnessapp.presentation.jogging.service.TimerService
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -57,6 +53,15 @@ class JoggingFragment : Fragment(), GpsLocation {
         private const val FINISHED_DISTANCE_TEXT = "Пройденная дистанция"
         private const val LOCATION_IS_EMPTY_ERROR = "Извините, не получается получить доступ" +
                 " к местоположению."
+        private const val GPS_UPDATE_MIN_TIME = 1000L
+        private const val GPS_UPDATE_MIN_DISTANCE = 1F
+        private const val GPS_PERMISSION_ERROR = "GPS permissions weren't provided"
+        private const val DEFAULT_START_LONGITUDE_VALUE = 37.618423
+        private const val DEFAULT_START_LATITUDE_VALUE = 55.751244
+        private const val SHARED_PREFERENCES_TOKEN_KEY_DEFAULT_VALUE = ""
+        private const val POP_UP_WINDOW_X_AXIS_VALUE = 0
+        private const val POP_UP_WINDOW_Y_AXIS_VALUE = 0
+        private const val TIME_DEFAULT_VALUE = 0.0
 
         var lastLocation: Location? = null
     }
@@ -67,8 +72,8 @@ class JoggingFragment : Fragment(), GpsLocation {
     private var timerStarted = false
     private var distance = 0
     private var time = 0.0
-    private var startLongitude: Double = 0.0
-    private var startLatitude: Double = 0.0
+    private var startLongitude: Double = 37.618423
+    private var startLatitude: Double = 55.751244
     private var point: Point? = null
 
     @set:Inject
@@ -92,7 +97,7 @@ class JoggingFragment : Fragment(), GpsLocation {
                         checkPermissions()
                     } else {
                         Toast.makeText(
-                            requireContext(), "GPS permissions weren't provided",
+                            requireContext(), GPS_PERMISSION_ERROR,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -102,7 +107,7 @@ class JoggingFragment : Fragment(), GpsLocation {
                         checkPermissions()
                     } else {
                         Toast.makeText(
-                            requireContext(), "GPS permissions weren't provided",
+                            requireContext(), GPS_PERMISSION_ERROR,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -134,8 +139,8 @@ class JoggingFragment : Fragment(), GpsLocation {
     @SuppressLint("MissingPermission")
     private fun getStartLocation() {
         val location = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        startLongitude = location?.longitude ?: 0.0
-        startLatitude = location?.latitude ?: 0.0
+        startLongitude = location?.longitude ?: DEFAULT_START_LONGITUDE_VALUE
+        startLatitude = location?.latitude ?: DEFAULT_START_LATITUDE_VALUE
     }
 
     private fun checkPermissions() {
@@ -157,8 +162,8 @@ class JoggingFragment : Fragment(), GpsLocation {
             setButtonStartListener {
                 locationManager?.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
-                    1,
-                    1F, locationListener!!
+                    GPS_UPDATE_MIN_TIME,
+                    GPS_UPDATE_MIN_DISTANCE, locationListener!!
                 )
             }
         }
@@ -218,15 +223,20 @@ class JoggingFragment : Fragment(), GpsLocation {
                         joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                         startLongitude = startLongitude, startLatitude = startLatitude,
                         finishLongitude = point?.lng ?: startLongitude,
-                        finishLatitude = point?.lat ?: startLatitude)
+                        finishLatitude = point?.lat ?: startLatitude
+                    )
                 )
                 saveTrack(
                     SAVE_TRACK_QUERY, SaveTrackRequest(
                         sharedPreferences
-                            ?.getString(SHARED_PREFERENCES_TOKEN_KEY, "") ?: "",
+                            ?.getString(
+                                SHARED_PREFERENCES_TOKEN_KEY,
+                                SHARED_PREFERENCES_TOKEN_KEY_DEFAULT_VALUE)
+                            ?: SHARED_PREFERENCES_TOKEN_KEY_DEFAULT_VALUE,
                         beginsAt = tracksStartTime!!,
                         time = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
-                        distance = distance, points = listOf(point ?: Point(0.0, 0.0)))
+                        distance = distance, points = listOf(point ?: Point(0.0, 0.0))
+                    )
                 )
             }
         }
@@ -243,7 +253,9 @@ class JoggingFragment : Fragment(), GpsLocation {
                         joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                         startLongitude = startLongitude, startLatitude = startLatitude,
                         finishLongitude = point?.lng ?: startLongitude,
-                        finishLatitude = point?.lat ?: startLatitude))
+                        finishLatitude = point?.lat ?: startLatitude
+                    )
+                )
                 insertTrack(
                     DataBaseTrack(
                         startTime = tracksStartTime!!,
@@ -251,7 +263,9 @@ class JoggingFragment : Fragment(), GpsLocation {
                         joggingTime = (time * MILLISECONDS_DELAY_OF_EMITTING_NUMBER).toLong(),
                         startLongitude = startLongitude, startLatitude = startLatitude,
                         finishLongitude = point?.lng ?: startLongitude,
-                        finishLatitude = point?.lat ?: startLatitude))
+                        finishLatitude = point?.lat ?: startLatitude
+                    )
+                )
             }
 
             popupWindow = PopupWindow(requireContext())
@@ -259,7 +273,8 @@ class JoggingFragment : Fragment(), GpsLocation {
                 R.layout.layout_popup_window, null, false
             )
             popupWindow?.contentView = popupWindowView
-            popupWindow?.showAtLocation(popupWindowView, Gravity.CENTER, 0, 0)
+            popupWindow?.showAtLocation(popupWindowView, Gravity.CENTER,
+                POP_UP_WINDOW_X_AXIS_VALUE, POP_UP_WINDOW_Y_AXIS_VALUE)
             popupWindowLayout = LayoutPopupWindowBinding.bind(popupWindowView!!)
 
             with(binding) {
@@ -286,7 +301,8 @@ class JoggingFragment : Fragment(), GpsLocation {
             } else {
                 popupWindowLayout!!.tvNoInternetConnectionError.text =
                     getString(R.string.layout_popup_window_restart_app_text)
-                popupWindow?.showAtLocation(view, Gravity.CENTER, 0, 0)
+                popupWindow?.showAtLocation(view, Gravity.CENTER,
+                    POP_UP_WINDOW_X_AXIS_VALUE, POP_UP_WINDOW_Y_AXIS_VALUE)
             }
         }
         popupWindowLayout?.btnGoToMainFragment?.setOnClickListener {
@@ -345,7 +361,7 @@ class JoggingFragment : Fragment(), GpsLocation {
 
     private val updateTime: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            time = intent.getDoubleExtra(TimerService.TIME_EXTRA, 0.0)
+            time = intent.getDoubleExtra(TimerService.TIME_EXTRA, TIME_DEFAULT_VALUE)
             binding.tvTime.text = viewModel.getTimeStringFromDouble(time)
         }
     }
@@ -366,7 +382,6 @@ class JoggingFragment : Fragment(), GpsLocation {
 
         point = Point(location.longitude, location.latitude)
 
-//        location.accuracy = 5F
         lastLocation = location
     }
 

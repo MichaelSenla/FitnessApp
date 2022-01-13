@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
 
     <item
         android:id="@+id/menuItemMain"
-        android:title="@string/navigation_drawer_menu_item_main"/>
+        android:title="@string/navigation_drawer_menu_item_main" />
 
     <item
         android:id="@+id/menuItemNotification"
-        android:title="@string/navigation_drawer_menu_item_notification"/>
-
-    <item
-        android:id="@+id/menuItemExit"
-        android:title="@string/navigation_drawer_menu_item_exit"/>
+        android:title="@string/navigation_drawer_menu_item_notification" />
 </menu>

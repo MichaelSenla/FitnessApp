@@ -21,7 +21,7 @@ import javax.inject.Inject
 class EntryViewModel @Inject constructor(
     private val compositeDisposable: CompositeDisposable,
     private val networkRepository: NetworkRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _logInResponse = MutableLiveData<LogInResponse>()
     val logInResponse: LiveData<LogInResponse>
@@ -42,11 +42,12 @@ class EntryViewModel @Inject constructor(
     }
 
     fun registerUser(query: String, registerRequest: RegisterRequest) {
-            compositeDisposable.add(
-                    networkRepository.registerUser(query, registerRequest)
+        compositeDisposable.add(
+            networkRepository.registerUser(query, registerRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({_registerResponse.value = it}, {}))
+                .subscribe({ _registerResponse.value = it }, {})
+        )
     }
 
     fun userLogIn(query: String, logInRequest: LogInRequest) {
@@ -54,7 +55,8 @@ class EntryViewModel @Inject constructor(
             networkRepository.userLogIn(query, logInRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _logInResponse.value = it }, {}))
+                .subscribe({ _logInResponse.value = it }, {})
+        )
     }
 
     override fun onCleared() {

@@ -1,6 +1,5 @@
 package com.senla.fitnessapp.presentation.jogging
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -30,6 +29,7 @@ class JoggingViewModel @Inject constructor(
         private const val ONE_SECOND_NUMBER = 10
         private const val SECONDS_SCALE_NUMBER = 60
         private const val ONE_HUNDRED_MILLISECONDS_SCALE_NUMBER = 10
+        private const val TIME_STRING_FORMAT = "%02d:%02d:%02d"
     }
 
     private val _track = MutableLiveData<DataBaseTrack>()
@@ -61,8 +61,7 @@ class JoggingViewModel @Inject constructor(
             networkRepository.saveTrack(query, saveTrackRequest)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _saveTrackResponse.value = it }, {})
-        )
+                .subscribe({ _saveTrackResponse.value = it }, {}))
     }
 
     fun getTrackById(id: Int) {
@@ -70,8 +69,7 @@ class JoggingViewModel @Inject constructor(
             sqLiteRepository.getTrackById(id)
             !!.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _track.value = it }, {})
-        )
+                .subscribe({ _track.value = it }, {}))
     }
 
     fun getTimeStringFromDouble(time: Double): String {
@@ -85,7 +83,7 @@ class JoggingViewModel @Inject constructor(
     }
 
     private fun makeTimeString(minutes: Int, seconds: Int, milliseconds: Int): String =
-        String.format("%02d:%02d:%02d", minutes, seconds, milliseconds)
+        String.format(TIME_STRING_FORMAT, minutes, seconds, milliseconds)
 
     override fun onCleared() {
         compositeDisposable.clear()

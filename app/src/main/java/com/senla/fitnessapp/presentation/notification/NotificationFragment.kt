@@ -1,44 +1,29 @@
 package com.senla.fitnessapp.presentation.notification
 
 import android.app.*
-import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.senla.fitnessapp.R
-import com.senla.fitnessapp.common.MainActivity
 import com.senla.fitnessapp.data.database.models.Notification
 import com.senla.fitnessapp.databinding.FragmentNotificationBinding
-import com.senla.fitnessapp.presentation.jogging.JoggingFragment
+import com.senla.fitnessapp.presentation.entry.EntryFragment
 import com.senla.fitnessapp.presentation.main.MainFragment
+import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setMenuExitButton
 import com.senla.fitnessapp.presentation.navigation.SideNavigation.Companion.setNavigationMenuButtons
-import com.senla.fitnessapp.presentation.notification.broadcast.NotificationReceiver
 import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment
-import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedDay
-import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedHour
-import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedMinute
-import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedMonth
-import com.senla.fitnessapp.presentation.notification.notificationDialog.NotificationDialogFragment.Companion.savedYear
 import com.senla.fitnessapp.presentation.notification.recyclerView.NotificationAdapter
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class NotificationFragment : Fragment(),
@@ -53,6 +38,7 @@ class NotificationFragment : Fragment(),
     private val binding get() = _binding!!
     private val viewModel: NotificationViewModel by viewModels()
     private var adapter: NotificationAdapter? = null
+
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
     private var updateAdapterObserver: Observer<ArrayList<Notification>>? = null
@@ -70,16 +56,24 @@ class NotificationFragment : Fragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         setNavigationMenuButtons(
             binding.navView, navigateToFragment, R.id.menuItemMain,
-            MainFragment(), sharedPreferences!!)
-        setAddNotificationButton()
+            MainFragment()
+        )
+        setNotificationFragmentListeners()
         initRecyclerView()
     }
 
-    private fun setAddNotificationButton() {
-        binding.fab.setOnClickListener {
-            NotificationDialogFragment(null, this)
-                .show(requireActivity().supportFragmentManager,
-                    NOTIFICATION_DIALOG_TAG)
+    private fun setNotificationFragmentListeners() {
+        with(binding) {
+            addNotificationFab.setOnClickListener {
+                NotificationDialogFragment(null, this@NotificationFragment)
+                    .show(
+                        requireActivity().supportFragmentManager,
+                        NOTIFICATION_DIALOG_TAG
+                    )
+            }
+            tvLogOut.setOnClickListener {
+                setMenuExitButton(navigateToFragment, EntryFragment(), sharedPreferences!!)
+            }
         }
     }
 
@@ -103,7 +97,8 @@ class NotificationFragment : Fragment(),
     override fun changeItem(position: Int, id: Int) {
         NotificationDialogFragment(id, this).show(
             requireActivity().supportFragmentManager,
-            NOTIFICATION_DIALOG_TAG)
+            NOTIFICATION_DIALOG_TAG
+        )
     }
 
     override fun refreshRecyclerView() {

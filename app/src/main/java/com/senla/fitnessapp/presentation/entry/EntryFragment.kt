@@ -3,7 +3,6 @@ package com.senla.fitnessapp.presentation.entry
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,11 +23,10 @@ import com.senla.fitnessapp.data.network.models.RegisterResponse
 import com.senla.fitnessapp.databinding.FragmentEntryBinding
 import com.senla.fitnessapp.presentation.main.MainFragment
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class EntryFragment: Fragment(R.layout.fragment_entry) {
+class EntryFragment : Fragment(R.layout.fragment_entry) {
 
     companion object {
         private const val SPANNABLE_LOG_IN_TEXT = "Войти"
@@ -56,6 +54,7 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private var logInFlag: Boolean = true
     private var logInResponseObserver: Observer<LogInResponse>? = null
     private var registrationResponseObserver: Observer<RegisterResponse>? = null
+
     @set:Inject
     var sharedPreferences: SharedPreferences? = null
 
@@ -88,8 +87,10 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private fun setLogInObserver() {
         logInResponseObserver = Observer {
             if (it?.status == SERVER_SUCCESS_RESPONSE) {
-                sharedPreferences?.edit()?.putString(SHARED_PREFERENCES_TOKEN_KEY,
-                    it.token)?.apply()
+                sharedPreferences?.edit()?.putString(
+                    SHARED_PREFERENCES_TOKEN_KEY,
+                    it.token
+                )?.apply()
 
                 val bundle = Bundle()
                 bundle.putBoolean(FIRST_APP_USE_EXTRA_KEY, true)
@@ -97,7 +98,7 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                 mainFragment.arguments = bundle
 
                 navigateToFragment(this, mainFragment)
-            } else if (it?.status == SERVER_ERROR_RESPONSE){
+            } else if (it?.status == SERVER_ERROR_RESPONSE) {
                 Toast.makeText(requireContext(), LOG_IN_ERROR_TEXT, Toast.LENGTH_SHORT).show()
             }
         }
@@ -106,8 +107,10 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
     private fun setRegistrationObserver() {
         registrationResponseObserver = Observer {
             if (it.status == SERVER_SUCCESS_RESPONSE) {
-                sharedPreferences?.edit()?.putString(SHARED_PREFERENCES_TOKEN_KEY,
-                    it.token)?.apply()
+                sharedPreferences?.edit()?.putString(
+                    SHARED_PREFERENCES_TOKEN_KEY,
+                    it.token
+                )?.apply()
 
                 val bundle = Bundle()
                 bundle.putBoolean(FIRST_APP_USE_EXTRA_KEY, true)
@@ -131,14 +134,19 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                         RegisterRequest(
                             etEmail.text.toString(), etName.text.toString(),
                             etLastname.text.toString(), etPassword.text.toString()))
-                } else Toast.makeText(requireContext(),
-                    NO_INTERNET_CONNECTION_TEXT, Toast.LENGTH_SHORT).show()}
+                } else Toast.makeText(
+                    requireContext(),
+                    NO_INTERNET_CONNECTION_TEXT, Toast.LENGTH_SHORT).show()
+            }
             btnLogIn.setOnClickListener {
                 if (isNetworkAvailable(requireContext())) {
-                    entryViewModel.userLogIn(LOG_IN_QUERY_TEXT,
+                    entryViewModel.userLogIn(
+                        LOG_IN_QUERY_TEXT,
                         LogInRequest(etEmail.text.toString(), etPassword.text.toString()))
-                } else Toast.makeText(requireContext(),
-                    NO_INTERNET_CONNECTION_TEXT, Toast.LENGTH_SHORT).show()}
+                } else Toast.makeText(
+                    requireContext(),
+                    NO_INTERNET_CONNECTION_TEXT, Toast.LENGTH_SHORT).show()
+            }
             tvAuthenticationState.setOnClickListener {
                 configureLayout()
             }
@@ -165,7 +173,8 @@ class EntryFragment: Fragment(R.layout.fragment_entry) {
                     .createUnderlineSpannable(
                         text = SPANNABLE_SIGNING_UP_TEXT,
                         startIndex = SIGNING_UP_SPANNABLE_START_INDEX,
-                        endIndex = SIGNING_UP_SPANNABLE_END_INDEX)
+                        endIndex = SIGNING_UP_SPANNABLE_END_INDEX
+                    )
                 etLastname.isVisible = false
                 etName.isVisible = false
                 etRepeatPassword.isVisible = false

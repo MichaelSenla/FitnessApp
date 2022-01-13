@@ -24,6 +24,11 @@ class NotificationDialogViewModel @Inject constructor(
     val compositeDisposable: CompositeDisposable
 ) : ViewModel() {
 
+    companion object {
+        private const val RESET_TIME_VALUE = 0
+        private const val DATABASE_QUERY_FAILED_VALUE = -1
+    }
+
     private val _notification = MutableLiveData<Notification>()
     val notification: LiveData<Notification>
         get() = _notification
@@ -32,12 +37,12 @@ class NotificationDialogViewModel @Inject constructor(
     val notificationWasCreatedOrUpdated: LiveData<Boolean>
         get() = _notificationWasCreatedOrUpdated
 
-    private fun cleanDateAndTimeValues() {
-        savedDay = 0
-        savedMonth = 0
-        savedYear = 0
-        savedMinute = 0
-        savedHour = 0
+    private fun resetDateAndTimeValues() {
+        savedDay = RESET_TIME_VALUE
+        savedMonth = RESET_TIME_VALUE
+        savedYear = RESET_TIME_VALUE
+        savedMinute = RESET_TIME_VALUE
+        savedHour = RESET_TIME_VALUE
     }
 
     fun createNotification(titleBinding: FragmentNotificationDialogBinding) {
@@ -51,8 +56,10 @@ class NotificationDialogViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    if (it > -1) _notificationWasCreatedOrUpdated.value = true;
-                    cleanDateAndTimeValues() }, {}) ?: Disposable.empty()
+                    if (it > DATABASE_QUERY_FAILED_VALUE)
+                        _notificationWasCreatedOrUpdated.value = true;
+                    resetDateAndTimeValues()
+                }, {}) ?: Disposable.empty()
         )
     }
 
@@ -68,8 +75,11 @@ class NotificationDialogViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    if (it > -1) _notificationWasCreatedOrUpdated.value = true;
-                    cleanDateAndTimeValues() }, {}) ?: Disposable.empty())
+                    if (it > DATABASE_QUERY_FAILED_VALUE)
+                        _notificationWasCreatedOrUpdated.value = true;
+                    resetDateAndTimeValues()
+                }, {}) ?: Disposable.empty()
+        )
     }
 
     fun getNotificationById(id: Int) {
